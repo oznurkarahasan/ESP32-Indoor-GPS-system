@@ -4,9 +4,11 @@ import 'dart:async';
 import '../services/ble_router.dart';
 import '../widgets/stop_scan_button.dart';
 import '../widgets/custom_appbar.dart';
-import '../views/floor_map_view.dart'; // YENİ VIEW
+import '../views/floor_map_view.dart';
+import '../models/poi_data.dart'; // POI modelini dahil ettik
+import 'navigation_page.dart'; // NavigationPage'i dahil ettik
 
-const String ZEMIN_KAT_HARITA_URL =
+const String zeminKatHaritaUrl =
     "https://drive.google.com/uc?export=view&id=1S5120GMyAPRw3hqgyw_JZQuKNUgM5ofA";
 
 class ZeminPage extends StatefulWidget {
@@ -23,14 +25,45 @@ class _ZeminPageState extends State<ZeminPage> {
   DateTime _lastNav = DateTime.fromMillisecondsSinceEpoch(0);
   final TextEditingController _searchController = TextEditingController();
 
-  // [initState, _navigateFor, _openLocationSearch ve dispose metotları ZeminPage'den aynen korunur]
+  // YENİ: Navigasyonu başlatan metot
+  void _startNavigation(String destinationPOI) {
+    try {
+      // 1. Hedef POI'yi bul (TÜM POI'ler arasında arıyoruz)
+      final targetPOI = BuildingData.allPOIs.firstWhere(
+        (poi) => poi.name == destinationPOI,
+      );
 
-  // Örn: _openLocationSearch metodu
+      // 2. Navigasyon sayfasına yönlendir
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => NavigationPage(
+            // Başlangıç noktasını buraya sabit olarak yazıyoruz. Gerçek uygulama BLE'den almalıdır.
+            startPOI: 'Zemin ZON',
+            endPOI: targetPOI,
+          ),
+        ),
+      );
+    } catch (e) {
+      // POI bulunamazsa kullanıcıya bilgi ver
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Hata: Hedef ($destinationPOI) veri setinde bulunamadı.',
+          ),
+        ),
+      );
+    }
+  }
+
+  // Arama alanına tıklandığında yapılacak işlem (gidilecek yerler listesini açma)
   void _openLocationSearch() {
+    // 👇 BURASI DÜZELTİLDİ: Tüm binadaki POI'leri alıyoruz.
+    final allBuildingPOIs = BuildingData.allPOIs;
+
     showModalBottomSheet(
-      // ... (Modal içeriği aynı kalır)
       context: context,
       isScrollControlled: true,
+      // Modalin arka planı transparan olmalı ki DraggableScrollableSheet'in radius'u gözüksün.
       backgroundColor: Colors.transparent,
       builder: (context) => DraggableScrollableSheet(
         initialChildSize: 0.85,
@@ -38,8 +71,9 @@ class _ZeminPageState extends State<ZeminPage> {
         maxChildSize: 1.0,
         builder: (context, scrollController) {
           return Container(
+            // Container'ın rengi ve radius'u burada ayarlandığı için liste arkası görünür.
             decoration: const BoxDecoration(
-              color: Colors.white,
+              color: Colors.white, // Modalin iç rengi beyaz (şeffaf değil)
               borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
             ),
             child: Column(
@@ -47,7 +81,7 @@ class _ZeminPageState extends State<ZeminPage> {
                 const Padding(
                   padding: EdgeInsets.all(16.0),
                   child: Text(
-                    'Gidilecek Yerler',
+                    'Tüm Bina Hedefleri', // BAŞLIK GÜNCELLENDİ
                     style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
@@ -55,13 +89,27 @@ class _ZeminPageState extends State<ZeminPage> {
                     ),
                   ),
                 ),
+                // Dinamik olarak POI'leri listele
                 Expanded(
-                  child: ListView(
+                  child: ListView.builder(
                     controller: scrollController,
-                    children: const [
-                      ListTile(title: Text('Danışma Masası (Zemin)')),
-                      ListTile(title: Text('Kafeterya (Zemin)')),
-                    ],
+                    itemCount: allBuildingPOIs.length, // TÜM LİSTE KULLANILDI
+                    itemBuilder: (context, index) {
+                      final poi = allBuildingPOIs[index];
+                      return ListTile(
+                        leading: const Icon(
+                          Icons.pin_drop,
+                          color: primaryOrange,
+                        ),
+                        title: Text(poi.name),
+                        // Hangi katta olduğunu belirtmek önemlidir
+                        subtitle: Text('Kat: ${poi.floor}'),
+                        onTap: () {
+                          Navigator.pop(context); // Modalı kapat
+                          _startNavigation(poi.name); // Navigasyonu başlat
+                        },
+                      );
+                    },
                   ),
                 ),
               ],
@@ -121,7 +169,7 @@ class _ZeminPageState extends State<ZeminPage> {
                 isWide: isWide,
                 onSearchTap: _openLocationSearch,
                 floorName: 'Zemin Kat', // Kat adını iletiyoruz
-                mapImageUrl: ZEMIN_KAT_HARITA_URL, // Buradan erişiliyor
+                mapImageUrl: zeminKatHaritaUrl, // Buradan erişiliyor
               ),
             ),
             const StopScanButton(),

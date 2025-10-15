@@ -142,7 +142,7 @@ class BleScannerView extends StatelessWidget {
         // Başlık ve Durdurma Butonunu içeren üst alan
         Container(
           padding: const EdgeInsets.only(top: 16, left: 16, right: 16),
-          color: accentOrange.withOpacity(0.1),
+          color: accentOrange.withValues(alpha: 0.1),
           child: Column(
             children: [
               Row(
@@ -180,7 +180,7 @@ class BleScannerView extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.grey.withOpacity(0.1),
+                      color: Colors.grey.withValues(alpha: 0.1),
                       spreadRadius: 1,
                       blurRadius: 3,
                     ),

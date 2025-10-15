@@ -29,7 +29,7 @@ class FloorMapView extends StatelessWidget {
           width: double.infinity, // Tüm genişliği kapla
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
           decoration: BoxDecoration(
-            color: primaryOrange.withOpacity(0.1),
+            color: primaryOrange.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(30),
             border: Border.all(color: primaryOrange, width: 1.5),
           ),
@@ -43,7 +43,7 @@ class FloorMapView extends StatelessWidget {
                   'Nereye gitmek istersiniz?',
                   style: TextStyle(
                     fontSize: isWide ? 18 : 16,
-                    color: primaryOrange.withOpacity(0.8),
+                    color: primaryOrange.withValues(alpha: 0.8),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
@@ -72,7 +72,7 @@ class FloorMapView extends StatelessWidget {
             child: Container(
               decoration: BoxDecoration(
                 border: Border.all(
-                  color: primaryOrange.withOpacity(0.5),
+                  color: primaryOrange.withValues(alpha: 0.5),
                   width: 2,
                 ),
                 borderRadius: BorderRadius.circular(12),
