@@ -1,5 +1,8 @@
 ﻿import 'package:flutter/material.dart';
 import 'pages/ble_scanner_page.dart';
+import 'pages/zemin_page.dart';
+import 'pages/kat1_page.dart';
+import 'pages/kat2_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -12,8 +15,14 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'NavBle',
-      theme: ThemeData(primarySwatch: Colors.blue),
-      home: const BleScannerPage(),
+      theme: ThemeData(primarySwatch: Colors.orange),
+      initialRoute: '/',
+      routes: {
+        '/': (context) => const BleScannerPage(),
+        '/zemin': (context) => const ZeminPage(),
+        '/kat1': (context) => const Kat1Page(),
+        '/kat2': (context) => const Kat2Page(),
+      },
       debugShowCheckedModeBanner: false,
     );
   }
