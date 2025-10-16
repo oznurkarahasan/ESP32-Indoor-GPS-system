@@ -1,7 +1,31 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- The INTERNET permission is required for development. Specifically,
-         the Flutter tool needs it to communicate with the running application
-         to allow setting breakpoints, to provide hot reload, etc.
-    -->
-    <uses-permission android:name="android.permission.INTERNET"/>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"> <!-- DÜZELTİLDİ: tools tanımı manifest etiketi içine alındı -->
+
+    <!-- GEREKLİ İZİNLER BURADA BAŞLAR -->
+
+    <!-- Bluetooth İzinleri (BLE Tarama) -->
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" android:usesPermissionFlags="neverForLocation" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
+    
+    <!-- Konum İzni (BLE taraması için zorunlu) -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    
+    <!-- Ses Tanıma İzni -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
+    <!-- İnternet İzni (Görsel ve Video URL'leri için) -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- GEREKLİ İZİNLER BURADA BİTER -->
+
+    <application
+        android:label="flutter_application_1"
+        android:name="${applicationName}"
+        android:icon="@mipmap/ic_launcher"
+        tools:replace="android:label"> <!-- Çakışmayı çözmek için etiket korundu -->
+        <!-- ... (Diğer uygulama ayarları) ... -->
+    </application>
 </manifest>

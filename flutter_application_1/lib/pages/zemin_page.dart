@@ -7,6 +7,9 @@ import '../widgets/custom_appbar.dart';
 import '../views/floor_map_view.dart';
 import '../models/poi_data.dart'; // POI modelini dahil ettik
 import 'navigation_page.dart'; // NavigationPage'i dahil ettik
+// YENİ PAKETLER
+import 'package:speech_to_text/speech_to_text.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 const String zeminKatHaritaUrl =
     "https://drive.google.com/uc?export=view&id=1S5120GMyAPRw3hqgyw_JZQuKNUgM5ofA";
@@ -19,13 +22,131 @@ class ZeminPage extends StatefulWidget {
 }
 
 class _ZeminPageState extends State<ZeminPage> {
-  // ... (Tüm mantık ve değişkenler aynı kalır)
   static const Color primaryOrange = Color(0xFFFF9800);
   StreamSubscription<TopSignal?>? _sub;
   DateTime _lastNav = DateTime.fromMillisecondsSinceEpoch(0);
   final TextEditingController _searchController = TextEditingController();
 
-  // YENİ: Navigasyonu başlatan metot
+  // YENİ: Ses Tanıma Değişkenleri
+  final SpeechToText _speechToText = SpeechToText();
+  bool _speechEnabled = false;
+  bool _isListening = false;
+  String _lastWords = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeSpeechRecognition(); // Ses iznini başta iste
+
+    _sub = BleRouter().topStream.listen((top) {
+      if (!mounted) return;
+      if (top == null) return;
+      if (top.name == 'Zemin') return;
+
+      final now = DateTime.now();
+      if (now.difference(_lastNav) < const Duration(milliseconds: 1200)) return;
+      _lastNav = now;
+      _navigateFor(top.name);
+    });
+  }
+
+  // YENİ METOT: Mikrofon İznini İste ve Başlat
+  Future<void> _initializeSpeechRecognition() async {
+    // Mikrofon iznini kontrol et
+    var status = await Permission.microphone.request();
+
+    if (status.isGranted) {
+      // İzin verildiyse SpeechToText servisini başlat
+      bool available = await _speechToText.initialize(
+        onError: (e) => print('STT Error: ${e.errorMsg}'),
+      );
+      if (mounted) {
+        setState(() {
+          _speechEnabled = available;
+          if (!available) {
+            _showSnack('Sesli komut servisi kullanılamıyor.');
+          }
+        });
+      }
+    } else {
+      _showSnack('Sesli komut için mikrofon izni gereklidir.');
+    }
+  }
+
+  // YENİ METOT: Ses Kaydını Başlat/Durdur
+  void _startListening() {
+    if (!_speechEnabled) {
+      _showSnack('Sesli komut servisi başlatılamadı. İzinleri kontrol edin.');
+      return;
+    }
+
+    // Zaten dinliyorsak durdur
+    if (_speechToText.isListening) {
+      _stopListening();
+      return;
+    }
+
+    _lastWords = '';
+    setState(() => _isListening = true);
+
+    _speechToText.listen(
+      onResult: (result) {
+        if (mounted) {
+          setState(() {
+            _lastWords = result.recognizedWords;
+          });
+          // Konuşma durduysa veya kesin sonuç geldiyse navigasyonu kontrol et
+          if (result.finalResult) {
+            _handleVoiceCommand(_lastWords);
+            _isListening = false;
+          }
+        }
+      },
+      // Dil ayarını projenizin ana diline göre yapın
+      localeId: 'tr_TR',
+    );
+
+    _showSnack(
+      _isListening
+          ? 'Dinleme başladı... Lütfen konuşun.'
+          : 'Dinleme başlatılamadı.',
+    );
+  }
+
+  // YENİ METOT: Ses Kaydını Durdur
+  void _stopListening() {
+    _speechToText.stop();
+    if (mounted) {
+      setState(() => _isListening = false);
+    }
+  }
+
+  // YENİ METOT: Algılanan metni hedeflerle karşılaştır
+  void _handleVoiceCommand(String command) {
+    if (command.isEmpty) return;
+
+    // Tüm POI'leri komutta geçen kelimelerle karşılaştır
+    final target = BuildingData.allPOIs.firstWhere(
+      (poi) => command.toLowerCase().contains(poi.name.toLowerCase()),
+      orElse: () => POI(name: 'NOT_FOUND', key: '', floor: '', imageUrl: ''),
+    );
+
+    if (target.name != 'NOT_FOUND') {
+      _showSnack('Komut algılandı: ${target.name}. Navigasyon başlatılıyor...');
+      _startNavigation(target.name);
+    } else {
+      _showSnack(
+        'Dinlendi: "$command". Bina hedefleriyle eşleşen yer bulunamadı.',
+      );
+    }
+  }
+
+  void _showSnack(String msg) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+  }
+
+  // YENİ: Navigasyonu başlatan metot (Güncellenmedi, eski mantığı koruyor)
   void _startNavigation(String destinationPOI) {
     try {
       // 1. Hedef POI'yi bul (TÜM POI'ler arasında arıyoruz)
@@ -37,33 +158,24 @@ class _ZeminPageState extends State<ZeminPage> {
       Navigator.of(context).push(
         MaterialPageRoute(
           builder: (context) => NavigationPage(
-            // Başlangıç noktasını buraya sabit olarak yazıyoruz. Gerçek uygulama BLE'den almalıdır.
+            // Başlangıç noktasını bu katın ana sinyal bölgesini varsayıyoruz.
             startPOI: 'Zemin ZON',
             endPOI: targetPOI,
           ),
         ),
       );
     } catch (e) {
-      // POI bulunamazsa kullanıcıya bilgi ver
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Hata: Hedef ($destinationPOI) veri setinde bulunamadı.',
-          ),
-        ),
-      );
+      _showSnack('Hata: Hedef ($destinationPOI) veri setinde bulunamadı.');
     }
   }
 
   // Arama alanına tıklandığında yapılacak işlem (gidilecek yerler listesini açma)
   void _openLocationSearch() {
-    // 👇 BURASI DÜZELTİLDİ: Tüm binadaki POI'leri alıyoruz.
     final allBuildingPOIs = BuildingData.allPOIs;
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      // Modalin arka planı transparan olmalı ki DraggableScrollableSheet'in radius'u gözüksün.
       backgroundColor: Colors.transparent,
       builder: (context) => DraggableScrollableSheet(
         initialChildSize: 0.85,
@@ -71,9 +183,8 @@ class _ZeminPageState extends State<ZeminPage> {
         maxChildSize: 1.0,
         builder: (context, scrollController) {
           return Container(
-            // Container'ın rengi ve radius'u burada ayarlandığı için liste arkası görünür.
             decoration: const BoxDecoration(
-              color: Colors.white, // Modalin iç rengi beyaz (şeffaf değil)
+              color: Colors.white,
               borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
             ),
             child: Column(
@@ -89,11 +200,10 @@ class _ZeminPageState extends State<ZeminPage> {
                     ),
                   ),
                 ),
-                // Dinamik olarak POI'leri listele
                 Expanded(
                   child: ListView.builder(
                     controller: scrollController,
-                    itemCount: allBuildingPOIs.length, // TÜM LİSTE KULLANILDI
+                    itemCount: allBuildingPOIs.length,
                     itemBuilder: (context, index) {
                       final poi = allBuildingPOIs[index];
                       return ListTile(
@@ -102,11 +212,10 @@ class _ZeminPageState extends State<ZeminPage> {
                           color: primaryOrange,
                         ),
                         title: Text(poi.name),
-                        // Hangi katta olduğunu belirtmek önemlidir
                         subtitle: Text('Kat: ${poi.floor}'),
                         onTap: () {
-                          Navigator.pop(context); // Modalı kapat
-                          _startNavigation(poi.name); // Navigasyonu başlat
+                          Navigator.pop(context);
+                          _startNavigation(poi.name);
                         },
                       );
                     },
@@ -118,22 +227,6 @@ class _ZeminPageState extends State<ZeminPage> {
         },
       ),
     );
-  }
-
-  // [Diğer metotlar buraya yapıştırılmalıdır]
-  @override
-  void initState() {
-    super.initState();
-    _sub = BleRouter().topStream.listen((top) {
-      if (!mounted) return;
-      if (top == null) return;
-      if (top.name == 'Zemin') return;
-
-      final now = DateTime.now();
-      if (now.difference(_lastNav) < const Duration(milliseconds: 1200)) return;
-      _lastNav = now;
-      _navigateFor(top.name);
-    });
   }
 
   void _navigateFor(String name) {
@@ -150,6 +243,7 @@ class _ZeminPageState extends State<ZeminPage> {
   void dispose() {
     _sub?.cancel();
     _searchController.dispose();
+    _speechToText.stop(); // Uygulama kapanınca durdur
     super.dispose();
   }
 
@@ -165,13 +259,36 @@ class _ZeminPageState extends State<ZeminPage> {
           children: [
             Expanded(
               child: FloorMapView(
-                // YENİ WIDGET'I KULLANIYORUZ
                 isWide: isWide,
                 onSearchTap: _openLocationSearch,
-                floorName: 'Zemin Kat', // Kat adını iletiyoruz
-                mapImageUrl: zeminKatHaritaUrl, // Buradan erişiliyor
+                // YENİ: Mikrofon işlevini FloorMapView'e iletiyoruz
+                onMicTap: _startListening,
+                isMicListening: _isListening, // Dinleme durumunu iletiyoruz
+                floorName: 'Zemin Kat',
+                mapImageUrl: zeminKatHaritaUrl,
               ),
             ),
+            // Dinleme durumu göstergesi
+            if (_isListening)
+              Container(
+                color: primaryOrange.withOpacity(0.8),
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                width: double.infinity,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.mic_none, color: Colors.white),
+                    const SizedBox(width: 8),
+                    Text(
+                      _lastWords.isEmpty ? 'Dinleniyor...' : _lastWords,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             const StopScanButton(),
           ],
         ),

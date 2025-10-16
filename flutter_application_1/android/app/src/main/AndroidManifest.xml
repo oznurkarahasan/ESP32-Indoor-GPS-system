@@ -5,6 +5,10 @@
     <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <!-- Network for images/videos -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- For future voice search support -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
     <!-- Android 12+ için BLE izinleri -->
     <uses-permission
