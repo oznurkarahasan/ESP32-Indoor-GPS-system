@@ -13,6 +13,7 @@ class BleRouter {
   factory BleRouter() => _instance;
 
   static const Set<String> _allowedNames = {'Zemin', 'Kat 1', 'Kat 2'};
+  // Alive Timeout aynı kalsın (1500ms), bu cihazın ne kadar süre sonra kaybolacağını belirler.
   static const Duration _aliveTimeout = Duration(milliseconds: 1500);
 
   bool _scanning = false;
@@ -41,6 +42,7 @@ class BleRouter {
 
     await FlutterBluePlus.startScan(
       continuousUpdates: true,
+      // Tarama hızını artırmak için continuousDivisor varsayılan değerde kalmalı (1)
       continuousDivisor: 1,
     );
 
@@ -64,7 +66,8 @@ class BleRouter {
 
     // Periodic tick to prune and publish even without new scan events
     _tickTimer?.cancel();
-    _tickTimer = Timer.periodic(const Duration(milliseconds: 500), (_) {
+    // Zamanlayıcıyı 500ms'den 200ms'ye düşürerek tepkiselliği artırdık
+    _tickTimer = Timer.periodic(const Duration(milliseconds: 200), (_) {
       _publish(DateTime.now());
     });
   }

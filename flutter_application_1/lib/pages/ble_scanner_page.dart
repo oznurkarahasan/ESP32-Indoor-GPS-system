@@ -15,7 +15,6 @@ class BleScannerPage extends StatefulWidget {
 }
 
 class _BleScannerPageState extends State<BleScannerPage> {
-  // ... (Tüm değişkenler aynı kalır) ...
   List<ScanResult> _devices = [];
   StreamSubscription<List<ScanResult>>? _devicesSub;
   StreamSubscription<bool>? _scanStateSub;
@@ -23,41 +22,86 @@ class _BleScannerPageState extends State<BleScannerPage> {
   StreamSubscription<BluetoothAdapterState>? _adapterSub;
   bool _scanning = false;
   BluetoothAdapterState _adapterState = BluetoothAdapterState.unknown;
+  // Temizlik zamanlayıcısını 500ms'ye düşürdük
   Timer? _cleanupTimer;
-  // ... (Diğer navigasyon değişkenleri aynı kalır) ...
   String? _lastRoute;
   DateTime _lastNav = DateTime.fromMillisecondsSinceEpoch(0);
 
   @override
   void initState() {
     super.initState();
-    // ... (initState içeriği aynı kalır) ...
+    // 1. İzinleri Kontrol Et ve Başlat
+    _checkPermissionsAndInitialize();
+
     _adapterSub = FlutterBluePlus.adapterState.listen((state) {
-      setState(() => _adapterState = state);
+      if (mounted) {
+        setState(() => _adapterState = state);
+      }
+      // 2. Eğer Bluetooth yeni açıldıysa, taramaya otomatik başla
+      if (state == BluetoothAdapterState.on && BleRouter().isScanning) {
+        // Zaten tarıyorsa akışları tekrar bağla
+        _attachStreams();
+      }
     });
 
-    _cleanupTimer = Timer.periodic(const Duration(seconds: 2), (_) {
+    // 3. Temizlik/Güncelleme zamanlayıcısını 500ms'ye ayarla
+    _cleanupTimer = Timer.periodic(const Duration(milliseconds: 500), (_) {
       if (!mounted) return;
       setState(() {});
     });
 
     if (BleRouter().isScanning) {
-      _attachStreams();
-      setState(() => _scanning = true);
+      BleRouter().stop();
     }
   }
 
-  // ... (_startScan, _attachStreams, _routeForName, _navigateRoute metotları aynı kalır) ...
+  Future<void> _checkPermissionsAndInitialize() async {
+    // 4. Bluetooth desteğini kontrol et
+    if (await FlutterBluePlus.isSupported == false) {
+      // Cihaz Bluetooth'u desteklemiyor.
+      if (mounted) {
+        // Hata mesajı gösterilebilir.
+      }
+      return;
+    }
+
+    // Yüksek BLE izinleri (tarama ve bağlanma) genellikle turnOn() ile istenir.
+    // Kullanıcının platformunu kontrol et ve Bluetooth'u açmasını iste.
+    if (mounted) {
+      // mounted kontrolü eklendi
+      if (Theme.of(context).platform == TargetPlatform.android ||
+          Theme.of(context).platform == TargetPlatform.iOS) {
+        // Bluetooth'u açma ve gerekli izinleri alma isteği.
+        // Konum izni (Android) ve Bluetooth izinleri (iOS/Android) bu çağrıyla dolaylı olarak istenir.
+        await FlutterBluePlus.turnOn();
+      }
+    }
+  }
+
   Future<void> _startScan() async {
+    // Bluetooth kapalıysa açılmasını iste
+    if (_adapterState != BluetoothAdapterState.on) {
+      // Bluetooth'u açmak için platformun izin diyalogunu göster
+      await FlutterBluePlus.turnOn();
+      // State'in güncellenmesini bekle (BleScannerView'da durumu kontrol et)
+      await Future.delayed(const Duration(milliseconds: 500));
+      if (_adapterState != BluetoothAdapterState.on) {
+        // Kullanıcı açmayı reddettiyse, uyarı gösterilebilir.
+        return;
+      }
+    }
+
     setState(() {
       _lastRoute = null;
     });
+    // Aşağıdaki if bloğunda tek satır statement yerine blok kullanın (curly_braces_in_flow_control_structures hatası için)
     if (!BleRouter().isScanning) {
       await BleRouter().start();
     }
     _attachStreams();
   }
 
+  // ... (Diğer metotlar aynı kalır) ...
   void _attachStreams() {
     // scanning state
     _scanning = BleRouter().isScanning;
@@ -78,8 +122,9 @@ class _BleScannerPageState extends State<BleScannerPage> {
       if (!mounted || top == null) return;
       final route = _routeForName(top.name);
       if (route == null) return;
+      // Navigasyon gecikmesi daha kısa tutulur
       final now = DateTime.now();
-      if (now.difference(_lastNav) < const Duration(milliseconds: 800)) return;
+      if (now.difference(_lastNav) < const Duration(milliseconds: 500)) return;
       _lastNav = now;
       _navigateRoute(route);
     });
@@ -98,29 +143,10 @@ class _BleScannerPageState extends State<BleScannerPage> {
     Navigator.of(context).pushReplacementNamed(route);
   }
 
-  // Tarama durdurma butonu StopScanButton widget'ı içinde yönetildiği için bu metot artık gerekli değil.
-  // Ancak tarama durdurma ikonunu AppBar'a eklemek isterseniz bu metodu kullanabilirsiniz.
-  /*
-  Future<void> _stopScan() async {
-    if (!BleRouter().isScanning) return;
-    try {
-      await BleRouter().stop();
-      setState(() {
-        _devices = [];
-      });
-    } catch (_) {
-      // Hata yönetimi
-    }
-  }
-  */
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // CustomAppBar'ı kullanıyoruz
       appBar: const CustomAppBar(title: 'NavIn'),
-
-      // Tüm arayüz mantığını BleScannerView'e aktarıyoruz
       body: BleScannerView(
         adapterState: _adapterState,
         isScanning: _scanning,

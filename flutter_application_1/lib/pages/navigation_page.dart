@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart'; // YENİ: Video Player Paketi
+import '../services/ble_router.dart';
 import '../models/poi_data.dart';
 import '../widgets/custom_appbar.dart';
 
@@ -35,10 +36,17 @@ class _NavigationPageState extends State<NavigationPage> {
   void initState() {
     super.initState();
     _initializeVideoPlayer();
+
+    // YENİ MANTIK: Navigasyon başladığında BLE taramasını durdur
+    BleRouter().stop();
   }
 
   @override
   void dispose() {
+    // YENİ MANTIK: Navigasyon sayfasından çıkıldığında BLE taramasını tekrar başlat
+    // Bu, kullanıcıyı doğru kata yönlendirmeyi sağlayacaktır.
+    BleRouter().start();
+
     _controller.dispose();
     super.dispose();
   }
