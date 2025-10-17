@@ -4,6 +4,7 @@ import '../models/poi_data.dart';
 
 // Gerekli callback'leri tanımlıyoruz
 typedef VideoControlCallback = void Function();
+typedef NavigationFinishedCallback = void Function(); // YENİ
 
 class NavigationView extends StatelessWidget {
   final POI endPOI;
@@ -13,6 +14,8 @@ class NavigationView extends StatelessWidget {
   final bool isPlaying;
   final VideoControlCallback onPlayPause;
   final VideoControlCallback onStop;
+  final NavigationFinishedCallback
+  onFinished; // YENİ: Navigasyon bitince çağrılır
 
   const NavigationView({
     super.key,
@@ -23,6 +26,7 @@ class NavigationView extends StatelessWidget {
     required this.isPlaying,
     required this.onPlayPause,
     required this.onStop,
+    required this.onFinished, // YENİ
   });
 
   static const Color primaryOrange = Color(0xFFFF9800);
@@ -72,7 +76,6 @@ class NavigationView extends StatelessWidget {
 
   // Hedef Görseli Kartı (Hedefin ulaşıldığında görünümü)
   Widget _buildDestinationImage(BuildContext context, double width) {
-    // YENİ: context eklendi
     final imageUrl = endPOI.imageUrl.isNotEmpty
         ? endPOI.imageUrl
         : 'https://placehold.co/400x300/000000/FFFFFF?text=Hedef+Görseli+Yok';
@@ -81,7 +84,7 @@ class NavigationView extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          "Hedef Önizlemesi",
+          "Hedef Önizlemesi (Ulaştığınızda Göreceğiniz)",
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
@@ -191,32 +194,29 @@ class NavigationView extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          "Adım Adım Navigasyon Videosu",
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          "Adım Adım Rota Rehberi", // Başlık güncellendi
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
 
         // Dikey Video Görüntüleyici ve Ortalamak için Center
         Center(
-          // 👈 YENİLİK: VİDEOYU YATAYDA ORTALAMAK İÇİN
           child: Container(
             width: isWide
-                ? 220
-                : double
-                      .infinity, // Geniş ekranda sabit genişlik, mobil/dar ekranda tamamı
-            height: isWide ? 450 : 350, // Dikey videoya uygun yükseklik
+                ? 250 // Geniş ekranda sabit genişlik artırıldı
+                : double.infinity, // mobil/dar ekranda tamamı
+            height: isWide ? 480 : 350, // Dikey videoya uygun yükseklik
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(15),
               color: Colors.black,
               boxShadow: [
-                BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 10),
+                BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 10),
               ],
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(15),
               child: GestureDetector(
-                onTap: () =>
-                    _openFullscreen(context), // 👈 YENİLİK: TAM EKRAN İÇİN
+                onTap: () => _openFullscreen(context), // 👈 TAM EKRAN İÇİN
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
@@ -233,11 +233,10 @@ class NavigationView extends StatelessWidget {
                       opacity: isPlaying ? 0.0 : 0.8,
                       duration: const Duration(milliseconds: 300),
                       child: Container(
-                        // withOpacity yerine withAlpha kullanıldı (Deprecated hatası için)
-                        color: Colors.black.withAlpha((255 * 0.54).round()),
+                        // Renk opacity'si için withOpacity kullanıldı
+                        color: Colors.black.withOpacity(0.54),
                         child: Center(
                           child: IconButton(
-                            // 👈 YENİLİK: Oynat/Duraklat butonu
                             icon: Icon(
                               isPlaying
                                   ? Icons.pause_circle_filled
@@ -245,8 +244,7 @@ class NavigationView extends StatelessWidget {
                               color: Colors.white,
                               size: 80,
                             ),
-                            onPressed:
-                                onPlayPause, // Burası tam ekran değil, sadece simge
+                            onPressed: onPlayPause,
                           ),
                         ),
                       ),
@@ -263,6 +261,7 @@ class NavigationView extends StatelessWidget {
                           color: Colors.white,
                         ),
                         onPressed: () {
+                          // Bu bir StatelessWidget olduğu için volume değişikliği sadece controller'ı etkiler.
                           controller.setVolume(
                             controller.value.volume == 0 ? 1.0 : 0.0,
                           );
@@ -275,10 +274,12 @@ class NavigationView extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: 10),
-        // Kontrol Butonları
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+        const SizedBox(height: 20),
+        // Kontrol Butonları ve Hedefe Varıldı
+        Wrap(
+          spacing: 15,
+          runSpacing: 15,
+          alignment: WrapAlignment.center,
           children: [
             // Pause/Play butonu
             ElevatedButton.icon(
@@ -293,15 +294,28 @@ class NavigationView extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(width: 15),
             // Stop butonu
             ElevatedButton.icon(
               onPressed: onStop,
               icon: const Icon(Icons.stop),
-              label: const Text('Durdur'),
+              label: const Text('Başa Dön'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.redAccent,
+                backgroundColor: Colors.blueGrey, // Rengi değiştirildi
                 foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            ),
+            // YENİ BUTON: Hedefe Varıldı
+            ElevatedButton.icon(
+              onPressed: onFinished,
+              icon: const Icon(Icons.location_on_sharp, size: 20),
+              label: const Text('Hedefe Varıldı!'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: primaryOrange,
+                foregroundColor: Colors.white,
+                minimumSize: const Size(180, 45),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
@@ -316,8 +330,7 @@ class NavigationView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    // Dikey videolar genellikle geniş ekranlarda yer kaplar, bu yüzden
-    // geniş ekran kontrolünü 800 piksel olarak ayarlayalım.
+    // Geniş ekran kontrolünü 800 piksel olarak ayarlayalım.
     final isWide = size.width > 800;
 
     return Padding(
@@ -349,9 +362,9 @@ class NavigationView extends StatelessWidget {
 
   // Geniş Ekran (Tablet/Desktop) Düzeni: Dikey video ve diğer bilgiler yan yana
   Widget _buildWideLayout(BuildContext context, double screenWidth) {
-    // Sol: Video (Dikey formatta olduğu için sabit genişlik veriyoruz)
+    // Sol: Video ve Kontroller (Dikey formatta olduğu için sabit genişlik veriyoruz)
     // Sağ: Bilgiler ve Hedef Önizlemesi (Kalan alanı kaplar)
-    const double videoAreaWidth = 400; // Sabit dikey video alanı
+    const double videoAreaWidth = 350; // Dikey video + kontrol alanı
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -363,6 +376,7 @@ class NavigationView extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildRouteInfoCard(routeVideo.startPOI),
+              // Video ve kontrol butonlarını Expanded ile sarmalıyoruz
               Expanded(
                 child: SingleChildScrollView(
                   child: _buildVideoPlayer(context, true),
@@ -379,7 +393,7 @@ class NavigationView extends StatelessWidget {
           child: SingleChildScrollView(
             child: _buildDestinationImage(
               context,
-              screenWidth - videoAreaWidth - 24 - 32,
+              screenWidth - videoAreaWidth - 24 - 32, // Hesaplanan genişlik
             ),
           ),
         ),
