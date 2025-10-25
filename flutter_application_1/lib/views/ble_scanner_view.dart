@@ -19,69 +19,127 @@ class BleScannerView extends StatelessWidget {
     required this.onStartScan,
   });
 
-  // Turuncu tema rengi
-  static const Color primaryOrange = Color(0xFFFF9800);
-  static const Color accentOrange = Color(0xFFFFCC80);
-  static const Color darkOrange = Color(0xFFE65100); // Yeni koyu ton
+  // Modern tema renkleri
+  static const Color primaryOrange = Color(0xFFFF6B35);
+  static const Color accentOrange = Color(0xFFFFB199);
+  static const Color darkOrange = Color(0xFFE55100);
+  static const Color lightBackground = Color(0xFFFAFAFA);
 
   // Responsive düzenleme için dikey boşluk ayarı
   double _getPadding(BuildContext context) {
-    return MediaQuery.of(context).size.height > 800 ? 40.0 : 24.0;
+    final height = MediaQuery.of(context).size.height;
+    if (height > 800) return 32.0;
+    if (height > 600) return 24.0;
+    return 16.0;
   }
 
-  /// Bluetooth Kapalı Durumu için özel widget (Geliştirildi)
+  // Responsive font size
+  double _getTitleSize(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    if (width > 400) return 28.0;
+    return 24.0;
+  }
+
+  /// Bluetooth Kapalı Durumu için modern widget
   Widget _buildBluetoothOff(BuildContext context) {
     return Container(
-      color: Colors.lightBlue.shade50, // Hafif mavi arka plan
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [lightBackground, Colors.blue.shade50],
+        ),
+      ),
       child: Center(
         child: Padding(
           padding: EdgeInsets.all(_getPadding(context)),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(
-                Icons.bluetooth_disabled,
-                size: 100, // Daha büyük simge
-                color: Colors.blueGrey,
-              ),
-              const SizedBox(height: 30),
-              Text(
-                'Bluetooth Kapalı',
-                style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.blue.withOpacity(0.2),
+                      blurRadius: 20,
+                      spreadRadius: 5,
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.bluetooth_disabled_rounded,
+                  size: 80,
                   color: Colors.blueGrey,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 1.2,
                 ),
               ),
-              const SizedBox(height: 15),
-              const Text(
-                'Lütfen cihazınızın Bluetooth özelliğini açın. Navigasyon için bu gereklidir.',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 18, color: Colors.black87),
+              const SizedBox(height: 32),
+              Text(
+                'Bluetooth Kapalı',
+                style: TextStyle(
+                  fontSize: _getTitleSize(context),
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blueGrey.shade700,
+                  letterSpacing: 0.5,
+                ),
               ),
-              const SizedBox(height: 40),
-              // Bluetooth'u açma isteği butonu
-              ElevatedButton.icon(
-                onPressed: onStartScan, // BleScannerPage'de turnOn çağrısı var
-                icon: const Icon(Icons.bluetooth_searching, size: 24),
-                label: const Text('Bluetooth\'u Aç'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  foregroundColor: Colors.white,
-                  minimumSize: const Size(
-                    double.infinity,
-                    60,
-                  ), // Responsive butona geçiş
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 40,
-                    vertical: 15,
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.1),
+                      blurRadius: 10,
+                      spreadRadius: 2,
+                    ),
+                  ],
+                ),
+                child: const Text(
+                  'İç mekan navigasyonu için Bluetooth özelliğinin açık olması gerekiyor.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.black87,
+                    height: 1.4,
                   ),
-                  textStyle: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 32),
+              Container(
+                width: double.infinity,
+                height: 56,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Colors.blue.shade400, Colors.blue.shade600],
                   ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.blue.withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: ElevatedButton.icon(
+                  onPressed: onStartScan,
+                  icon: const Icon(Icons.bluetooth_searching_rounded, size: 24),
+                  label: const Text(
+                    'Bluetooth\'u Aç',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.transparent,
+                    foregroundColor: Colors.white,
+                    shadowColor: Colors.transparent,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
                   ),
                 ),
               ),
@@ -92,98 +150,219 @@ class BleScannerView extends StatelessWidget {
     );
   }
 
-  /// Tarama Başlatma Durumu için özel widget (Geliştirildi)
+  /// Modern tarama başlatma widget'ı
   Widget _buildStartScan(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: EdgeInsets.all(_getPadding(context)),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.location_on, size: 100, color: primaryOrange),
-            const SizedBox(height: 30),
-            Text(
-              'İç Mekan Navigasyonu',
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                color: darkOrange,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 15),
-            const Text(
-              'Sinyalleri tarayarak katınızı ve konumunuzu hızlıca belirleyin.',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 18, color: Colors.black87),
-            ),
-            const SizedBox(height: 50),
-            ElevatedButton.icon(
-              onPressed: onStartScan,
-              icon: const Icon(Icons.radar, size: 30), // Daha uygun bir simge
-              label: const Text('Taramayı Başlat'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: primaryOrange,
-                foregroundColor: Colors.white,
-                minimumSize: const Size(
-                  double.infinity,
-                  65,
-                ), // Responsive genişlik
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 40,
-                  vertical: 15,
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [lightBackground, accentOrange.withOpacity(0.1)],
+        ),
+      ),
+      child: Center(
+        child: Padding(
+          padding: EdgeInsets.all(_getPadding(context)),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(32),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: primaryOrange.withOpacity(0.2),
+                      blurRadius: 30,
+                      spreadRadius: 10,
+                    ),
+                  ],
                 ),
-                textStyle: const TextStyle(
-                  fontSize: 22,
+                child: const Icon(
+                  Icons.navigation_rounded,
+                  size: 80,
+                  color: primaryOrange,
+                ),
+              ),
+              const SizedBox(height: 32),
+              Text(
+                'NavIn',
+                style: TextStyle(
+                  fontSize: _getTitleSize(context) + 8,
                   fontWeight: FontWeight.bold,
+                  color: darkOrange,
+                  letterSpacing: 1.0,
                 ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                elevation: 8,
               ),
-            ),
-          ],
+              const SizedBox(height: 8),
+              Text(
+                'İç Mekan Navigasyonu',
+                style: TextStyle(
+                  fontSize: _getTitleSize(context) - 4,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.grey.shade600,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              const SizedBox(height: 24),
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.1),
+                      blurRadius: 15,
+                      spreadRadius: 3,
+                    ),
+                  ],
+                ),
+                child: const Text(
+                  'Bluetooth sinyallerini tarayarak bulunduğunuz katı otomatik olarak tespit eder ve size yol gösterir.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.black87,
+                    height: 1.5,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 40),
+              Container(
+                width: double.infinity,
+                height: 64,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [primaryOrange, darkOrange],
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: primaryOrange.withOpacity(0.4),
+                      blurRadius: 12,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                ),
+                child: ElevatedButton.icon(
+                  onPressed: onStartScan,
+                  icon: const Icon(Icons.radar_rounded, size: 28),
+                  label: const Text(
+                    'Taramayı Başlat',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.transparent,
+                    foregroundColor: Colors.white,
+                    shadowColor: Colors.transparent,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  /// Tarama Açık ve Cihaz Bekleme Durumu için özel widget (Geliştirildi)
+  /// Modern bekleme widget'ı
   Widget _buildWaitingForDevices(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: EdgeInsets.all(_getPadding(context)),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SizedBox(
-              width: 50,
-              height: 50,
-              child: CircularProgressIndicator(
-                color: primaryOrange,
-                strokeWidth: 5,
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [lightBackground, primaryOrange.withOpacity(0.05)],
+        ),
+      ),
+      child: Center(
+        child: Padding(
+          padding: EdgeInsets.all(_getPadding(context)),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: primaryOrange.withOpacity(0.2),
+                      blurRadius: 20,
+                      spreadRadius: 5,
+                    ),
+                  ],
+                ),
+                child: SizedBox(
+                  width: 60,
+                  height: 60,
+                  child: CircularProgressIndicator(
+                    color: primaryOrange,
+                    strokeWidth: 4,
+                    backgroundColor: primaryOrange.withOpacity(0.2),
+                  ),
+                ),
               ),
-            ),
-            const SizedBox(height: 30),
-            const Text(
-              'Sinyaller Algılanıyor...',
-              style: TextStyle(
-                fontSize: 20,
-                color: primaryOrange,
-                fontWeight: FontWeight.w600,
+              const SizedBox(height: 32),
+              Text(
+                'Sinyaller Algılanıyor',
+                style: TextStyle(
+                  fontSize: _getTitleSize(context),
+                  color: primaryOrange,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.5,
+                ),
               ),
-            ),
-            const SizedBox(height: 10),
-            const Text(
-              'Çevrenizdeki sinyaller analiz ediliyor. Lütfen bekleyin.',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 16, color: Colors.black54),
-            ),
-            const SizedBox(height: 50),
-            const StopScanButton(
-              fullWidth: true,
-              padding: EdgeInsets.symmetric(horizontal: 20),
-            ),
-          ],
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.1),
+                      blurRadius: 10,
+                      spreadRadius: 2,
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    const Text(
+                      'Çevrenizdeki Bluetooth sinyalleri taranıyor...',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.black87,
+                        height: 1.4,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Lütfen birkaç saniye bekleyin',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 40),
+              const StopScanButton(
+                fullWidth: true,
+                padding: EdgeInsets.symmetric(horizontal: 20),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -252,9 +431,9 @@ class BleScannerView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: lightBackground,
       body: _buildBody(context),
-    ); // Hafif gri arka plan
+    );
   }
 
   // Bluetooth durumuna göre ana içeriği döndüren metot

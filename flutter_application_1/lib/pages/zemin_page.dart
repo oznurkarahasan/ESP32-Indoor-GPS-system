@@ -1,13 +1,12 @@
-// Eski import'ları temizliyoruz
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'dart:async';
 import '../services/ble_router.dart';
 import '../widgets/stop_scan_button.dart';
 import '../widgets/custom_appbar.dart';
-import '../views/floor_map_view.dart';
-import '../models/poi_data.dart'; // POI modelini dahil ettik
-import 'navigation_page.dart'; // NavigationPage'i dahil ettik
-// YENİ PAKETLER
+import '../widgets/modern_card.dart';
+import '../models/poi_data.dart';
+import 'navigation_page.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -21,22 +20,36 @@ class ZeminPage extends StatefulWidget {
   State<ZeminPage> createState() => _ZeminPageState();
 }
 
-class _ZeminPageState extends State<ZeminPage> {
-  static const Color primaryOrange = Color(0xFFFF9800);
+class _ZeminPageState extends State<ZeminPage>
+    with TickerProviderStateMixin {
+  // Modern tema renkleri
+  static const Color primaryOrange = Color(0xFFFF6B35);
+  static const Color accentOrange = Color(0xFFFFB199);
+  static const Color darkOrange = Color(0xFFE55100);
+  static const Color successGreen = Color(0xFF4CAF50);
+  static const Color micActiveColor = Color(0xFFE91E63);
+
   StreamSubscription<TopSignal?>? _sub;
   DateTime _lastNav = DateTime.fromMillisecondsSinceEpoch(0);
-  final TextEditingController _searchController = TextEditingController();
 
-  // YENİ: Ses Tanıma Değişkenleri
+  // Ses tanıma değişkenleri
   final SpeechToText _speechToText = SpeechToText();
   bool _speechEnabled = false;
   bool _isListening = false;
   String _lastWords = '';
 
+  // Animasyon kontrolcüleri
+  late AnimationController _micPulseController;
+  late AnimationController _listeningController;
+  late Animation<double> _micPulseAnimation;
+  late Animation<double> _listeningAnimation;
+  late Animation<Color?> _micColorAnimation;
+
   @override
   void initState() {
     super.initState();
-    _initializeSpeechRecognition(); // Ses iznini başta iste
+    _initializeAnimations();
+    _initializeSpeechRecognition();
 
     _sub = BleRouter().topStream.listen((top) {
       if (!mounted) return;
@@ -50,15 +63,48 @@ class _ZeminPageState extends State<ZeminPage> {
     });
   }
 
-  // YENİ METOT: Mikrofon İznini İste ve Başlat
+  void _initializeAnimations() {
+    _micPulseController = AnimationController(
+      duration: const Duration(milliseconds: 1000),
+      vsync: this,
+    );
+
+    _listeningController = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    );
+
+    _micPulseAnimation = Tween<double>(
+      begin: 1.0,
+      end: 1.3,
+    ).animate(CurvedAnimation(
+      parent: _micPulseController,
+      curve: Curves.easeInOut,
+    ));
+
+    _listeningAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _listeningController,
+      curve: Curves.elasticOut,
+    ));
+
+    _micColorAnimation = ColorTween(
+      begin: primaryOrange,
+      end: micActiveColor,
+    ).animate(CurvedAnimation(
+      parent: _listeningController,
+      curve: Curves.easeInOut,
+    ));
+  }
+
   Future<void> _initializeSpeechRecognition() async {
-    // Mikrofon iznini kontrol et
     var status = await Permission.microphone.request();
 
     if (status.isGranted) {
-      // İzin verildiyse SpeechToText servisini başlat
       bool available = await _speechToText.initialize(
-        onError: (e) => print('STT Error: ${e.errorMsg}'),
+        onError: (e) => debugPrint('STT Error: ${e.errorMsg}'),
       );
       if (mounted) {
         setState(() {
@@ -73,14 +119,12 @@ class _ZeminPageState extends State<ZeminPage> {
     }
   }
 
-  // YENİ METOT: Ses Kaydını Başlat/Durdur
   void _startListening() {
     if (!_speechEnabled) {
       _showSnack('Sesli komut servisi başlatılamadı. İzinleri kontrol edin.');
       return;
     }
 
-    // Zaten dinliyorsak durdur
     if (_speechToText.isListening) {
       _stopListening();
       return;
@@ -88,6 +132,13 @@ class _ZeminPageState extends State<ZeminPage> {
 
     _lastWords = '';
     setState(() => _isListening = true);
+    
+    // Animasyonları başlat
+    _listeningController.forward();
+    _micPulseController.repeat(reverse: true);
+    
+    // Haptic feedback
+    HapticFeedback.mediumImpact();
 
     _speechToText.listen(
       onResult: (result) {
@@ -95,37 +146,33 @@ class _ZeminPageState extends State<ZeminPage> {
           setState(() {
             _lastWords = result.recognizedWords;
           });
-          // Konuşma durduysa veya kesin sonuç geldiyse navigasyonu kontrol et
           if (result.finalResult) {
             _handleVoiceCommand(_lastWords);
-            _isListening = false;
+            _stopListening();
           }
         }
       },
-      // Dil ayarını projenizin ana diline göre yapın
       localeId: 'tr_TR',
     );
 
-    _showSnack(
-      _isListening
-          ? 'Dinleme başladı... Lütfen konuşun.'
-          : 'Dinleme başlatılamadı.',
-    );
+    _showSnack('Dinleme başladı... Lütfen konuşun.');
   }
 
-  // YENİ METOT: Ses Kaydını Durdur
   void _stopListening() {
     _speechToText.stop();
+    _listeningController.reverse();
+    _micPulseController.stop();
+    
     if (mounted) {
       setState(() => _isListening = false);
     }
+    
+    HapticFeedback.lightImpact();
   }
 
-  // YENİ METOT: Algılanan metni hedeflerle karşılaştır
   void _handleVoiceCommand(String command) {
     if (command.isEmpty) return;
 
-    // Tüm POI'leri komutta geçen kelimelerle karşılaştır
     final target = BuildingData.allPOIs.firstWhere(
       (poi) => command.toLowerCase().contains(poi.name.toLowerCase()),
       orElse: () => POI(name: 'NOT_FOUND', key: '', floor: '', imageUrl: ''),
@@ -146,19 +193,15 @@ class _ZeminPageState extends State<ZeminPage> {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
   }
 
-  // YENİ: Navigasyonu başlatan metot (Güncellenmedi, eski mantığı koruyor)
   void _startNavigation(String destinationPOI) {
     try {
-      // 1. Hedef POI'yi bul (TÜM POI'ler arasında arıyoruz)
       final targetPOI = BuildingData.allPOIs.firstWhere(
         (poi) => poi.name == destinationPOI,
       );
 
-      // 2. Navigasyon sayfasına yönlendir
       Navigator.of(context).push(
         MaterialPageRoute(
           builder: (context) => NavigationPage(
-            // Başlangıç noktasını bu katın ana sinyal bölgesini varsayıyoruz.
             startPOI: 'Zemin ZON',
             endPOI: targetPOI,
           ),
@@ -169,62 +212,235 @@ class _ZeminPageState extends State<ZeminPage> {
     }
   }
 
-  // Arama alanına tıklandığında yapılacak işlem (gidilecek yerler listesini açma)
   void _openLocationSearch() {
     final allBuildingPOIs = BuildingData.allPOIs;
+    final zeminPOIs = allBuildingPOIs.where((poi) => poi.floor == 'Zemin').toList();
+    final otherPOIs = allBuildingPOIs.where((poi) => poi.floor != 'Zemin').toList();
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.85,
+        initialChildSize: 0.9,
         minChildSize: 0.5,
-        maxChildSize: 1.0,
+        maxChildSize: 0.95,
         builder: (context, scrollController) {
           return Container(
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 20,
+                  offset: const Offset(0, -5),
+                ),
+              ],
             ),
             child: Column(
               children: [
-                const Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: Text(
-                    'Tüm Bina Hedefleri', // BAŞLIK GÜNCELLENDİ
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: primaryOrange,
-                    ),
+                // Handle bar
+                Container(
+                  margin: const EdgeInsets.only(top: 12),
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
                   ),
                 ),
-                Expanded(
-                  child: ListView.builder(
-                    controller: scrollController,
-                    itemCount: allBuildingPOIs.length,
-                    itemBuilder: (context, index) {
-                      final poi = allBuildingPOIs[index];
-                      return ListTile(
-                        leading: const Icon(
-                          Icons.pin_drop,
-                          color: primaryOrange,
+                
+                // Header
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: primaryOrange.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                        title: Text(poi.name),
-                        subtitle: Text('Kat: ${poi.floor}'),
-                        onTap: () {
-                          Navigator.pop(context);
-                          _startNavigation(poi.name);
-                        },
-                      );
-                    },
+                        child: Icon(
+                          Icons.search_rounded,
+                          color: primaryOrange,
+                          size: 24,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Nereye Gitmek İstiyorsunuz?',
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.grey.shade800,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Hedef seçin veya sesli komut kullanın',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey.shade600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                
+                // Tüm yerler listesi
+                Expanded(
+                  child: ListView(
+                    controller: scrollController,
+                    children: [
+                      // Bu kattaki yerler
+                      if (zeminPOIs.isNotEmpty) ...[
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                          child: Row(
+                            children: [
+                              Icon(Icons.location_on_rounded, color: successGreen, size: 20),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Bu Kattaki Yerler',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: successGreen,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        ...zeminPOIs.map((poi) => _buildPOITile(poi, true)),
+                        const SizedBox(height: 16),
+                      ],
+                      
+                      // Diğer katlardaki yerler
+                      if (otherPOIs.isNotEmpty) ...[
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                          child: Row(
+                            children: [
+                              Icon(Icons.stairs_rounded, color: Colors.blue, size: 20),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Diğer Katlardaki Yerler',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.blue,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        ...otherPOIs.map((poi) => _buildPOITile(poi, false)),
+                        const SizedBox(height: 20),
+                      ],
+                    ],
                   ),
                 ),
               ],
             ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildPOITile(POI poi, bool isCurrentFloor) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: ModernCard(
+        onTap: () {
+          Navigator.pop(context);
+          _startNavigation(poi.name);
+        },
+        child: Row(
+          children: [
+            Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                image: DecorationImage(
+                  image: NetworkImage(poi.imageUrl),
+                  fit: BoxFit.cover,
+                ),
+              ),
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  color: Colors.black.withOpacity(0.3),
+                ),
+                child: Icon(
+                  isCurrentFloor ? Icons.location_on_rounded : Icons.stairs_rounded,
+                  color: Colors.white,
+                  size: 24,
+                ),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    poi.name,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: isCurrentFloor 
+                              ? successGreen.withOpacity(0.1)
+                              : Colors.blue.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          poi.floor,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: isCurrentFloor ? successGreen : Colors.blue,
+                          ),
+                        ),
+                      ),
+                      if (!isCurrentFloor) ...[
+                        const SizedBox(width: 8),
+                        Icon(
+                          Icons.arrow_upward_rounded,
+                          size: 16,
+                          color: Colors.grey.shade600,
+                        ),
+                      ],
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.arrow_forward_ios_rounded,
+              size: 16,
+              color: Colors.grey.shade400,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -242,57 +458,353 @@ class _ZeminPageState extends State<ZeminPage> {
   @override
   void dispose() {
     _sub?.cancel();
-    _searchController.dispose();
-    _speechToText.stop(); // Uygulama kapanınca durdur
+    _speechToText.stop();
+    _micPulseController.dispose();
+    _listeningController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    final isWide = size.width > 480;
-
     return Scaffold(
-      appBar: const CustomAppBar(title: "Zemin Kat Haritası"),
+      backgroundColor: Colors.grey.shade50,
+      appBar: const CustomAppBar(title: "Zemin Kat"),
       body: SafeArea(
         child: Column(
           children: [
+            _buildSearchSection(),
             Expanded(
-              child: FloorMapView(
-                isWide: isWide,
-                onSearchTap: _openLocationSearch,
-                // YENİ: Mikrofon işlevini FloorMapView'e iletiyoruz
-                onMicTap: _startListening,
-                isMicListening: _isListening, // Dinleme durumunu iletiyoruz
-                floorName: 'Zemin Kat',
-                mapImageUrl: zeminKatHaritaUrl,
-              ),
+              child: _buildMapSection(),
             ),
-            // Dinleme durumu göstergesi
-            if (_isListening)
-              Container(
-                color: primaryOrange.withOpacity(0.8),
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                width: double.infinity,
+            if (_isListening) _buildListeningIndicator(),
+            const StopScanButton(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSearchSection() {
+    return Container(
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.2),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: GestureDetector(
+              onTap: _openLocationSearch,
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade50,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: _isListening 
+                        ? micActiveColor 
+                        : Colors.grey.shade300,
+                    width: _isListening ? 2 : 1,
+                  ),
+                ),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.mic_none, color: Colors.white),
-                    const SizedBox(width: 8),
-                    Text(
-                      _lastWords.isEmpty ? 'Dinleniyor...' : _lastWords,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
+                    Icon(
+                      Icons.search_rounded,
+                      color: primaryOrange,
+                      size: 24,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        _isListening 
+                            ? (_lastWords.isEmpty ? 'Dinleniyor...' : _lastWords)
+                            : 'Nereye gitmek istiyorsunuz?',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: _isListening 
+                              ? micActiveColor 
+                              : Colors.grey.shade600,
+                          fontWeight: _isListening ? FontWeight.w600 : FontWeight.w500,
+                        ),
                       ),
                     ),
                   ],
                 ),
               ),
-            const StopScanButton(),
+            ),
+          ),
+          
+          const SizedBox(width: 8),
+          
+          _buildMicrophoneButton(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMicrophoneButton() {
+    return AnimatedBuilder(
+      animation: Listenable.merge([_micPulseAnimation, _micColorAnimation]),
+      builder: (context, child) {
+        return Transform.scale(
+          scale: _isListening ? _micPulseAnimation.value : 1.0,
+          child: Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: _isListening
+                    ? [micActiveColor, micActiveColor.withOpacity(0.8)]
+                    : [primaryOrange, primaryOrange.withOpacity(0.8)],
+              ),
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: (_isListening ? micActiveColor : primaryOrange)
+                      .withOpacity(0.4),
+                  blurRadius: _isListening ? 16 : 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(28),
+                onTap: _startListening,
+                child: Icon(
+                  _isListening ? Icons.mic_rounded : Icons.mic_none_rounded,
+                  color: Colors.white,
+                  size: 28,
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildMapSection() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.15),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: Stack(
+          children: [
+            Image.network(
+              zeminKatHaritaUrl,
+              fit: BoxFit.contain,
+              width: double.infinity,
+              height: double.infinity,
+              loadingBuilder: (context, child, loadingProgress) {
+                if (loadingProgress == null) return child;
+                return Container(
+                  color: Colors.grey.shade50,
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SizedBox(
+                          width: 40,
+                          height: 40,
+                          child: CircularProgressIndicator(
+                            value: loadingProgress.expectedTotalBytes != null
+                                ? loadingProgress.cumulativeBytesLoaded /
+                                    loadingProgress.expectedTotalBytes!
+                                : null,
+                            color: primaryOrange,
+                            strokeWidth: 3,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Harita yükleniyor...',
+                          style: TextStyle(
+                            color: Colors.grey.shade600,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  color: Colors.grey.shade50,
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.red.shade50,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.map_outlined,
+                            color: Colors.red.shade400,
+                            size: 48,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        const Text(
+                          'Zemin Kat Haritası',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Harita yüklenemedi',
+                          style: TextStyle(
+                            color: Colors.grey.shade600,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+            
+            // Kat bilgisi overlay
+            Positioned(
+              top: 16,
+              left: 16,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: primaryOrange.withOpacity(0.9),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: primaryOrange.withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: const Text(
+                  'Zemin Kat',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildListeningIndicator() {
+    return AnimatedBuilder(
+      animation: _listeningAnimation,
+      builder: (context, child) {
+        return Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                micActiveColor.withOpacity(0.1),
+                micActiveColor.withOpacity(0.05),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: micActiveColor.withOpacity(0.3),
+              width: 2,
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: micActiveColor,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.mic_rounded,
+                  color: Colors.white,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Sesli Komut Aktif',
+                      style: TextStyle(
+                        color: micActiveColor,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
+                    Text(
+                      _lastWords.isEmpty 
+                          ? 'Lütfen hedef yerinizi söyleyin...' 
+                          : '"$_lastWords"',
+                      style: TextStyle(
+                        color: Colors.grey.shade700,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              GestureDetector(
+                onTap: _stopListening,
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade200,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.close_rounded,
+                    color: Colors.grey.shade600,
+                    size: 20,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

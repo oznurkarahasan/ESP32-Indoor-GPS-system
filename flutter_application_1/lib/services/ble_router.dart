@@ -13,8 +13,9 @@ class BleRouter {
   factory BleRouter() => _instance;
 
   static const Set<String> _allowedNames = {'Zemin', 'Kat 1', 'Kat 2'};
-  // Alive Timeout aynı kalsın (1500ms), bu cihazın ne kadar süre sonra kaybolacağını belirler.
-  static const Duration _aliveTimeout = Duration(milliseconds: 1500);
+  static const Duration _aliveTimeout = Duration(milliseconds: 1200); // Daha hızlı timeout
+  static const int _rssiThreshold = -85; // Çok zayıf sinyalleri filtrele
+  static const int _maxHistorySize = 5; // RSSI geçmişi için
 
   bool _scanning = false;
   StreamSubscription<List<ScanResult>>? _scanSub;
@@ -30,9 +31,10 @@ class BleRouter {
   Stream<bool> get scanningStream => _scanningCtrl.stream;
   bool get isScanning => _scanning;
 
-  // Internal state
-  final Map<String, DateTime> _lastSeenById = {}; // id -> last seen
-  final Map<String, ScanResult> _lastResultById = {}; // id -> last result
+  // Enhanced internal state with RSSI smoothing
+  final Map<String, DateTime> _lastSeenById = {};
+  final Map<String, ScanResult> _lastResultById = {};
+  final Map<String, List<int>> _rssiHistory = {}; // RSSI geçmişi için smoothing
   String? _publishedTopId;
 
   Future<void> start() async {
@@ -49,15 +51,40 @@ class BleRouter {
     _scanSub = FlutterBluePlus.scanResults.listen((results) {
       final now = DateTime.now();
 
-      // Update last seen/result per id
+      // Update last seen/result per id with RSSI smoothing
       for (final r in results) {
         final name = r.device.platformName;
         if (name.isEmpty || !_allowedNames.contains(name)) continue;
+        
+        // Çok zayıf sinyalleri filtrele
+        if (r.rssi < _rssiThreshold) continue;
+        
         final id = r.device.remoteId.str;
         _lastSeenById[id] = now;
+        
+        // RSSI smoothing için geçmiş tut
+        _rssiHistory.putIfAbsent(id, () => <int>[]);
+        _rssiHistory[id]!.add(r.rssi);
+        
+        // Geçmişi sınırla
+        if (_rssiHistory[id]!.length > _maxHistorySize) {
+          _rssiHistory[id]!.removeAt(0);
+        }
+        
+        // Smoothed RSSI hesapla (moving average)
+        final smoothedRssi = _rssiHistory[id]!.reduce((a, b) => a + b) ~/ _rssiHistory[id]!.length;
+        
+        // Smoothed değerle yeni ScanResult oluştur
+        final smoothedResult = ScanResult(
+          device: r.device,
+          advertisementData: r.advertisementData,
+          rssi: smoothedRssi,
+          timeStamp: r.timeStamp,
+        );
+        
         final prev = _lastResultById[id];
-        if (prev == null || r.rssi > prev.rssi) {
-          _lastResultById[id] = r;
+        if (prev == null || smoothedRssi > prev.rssi) {
+          _lastResultById[id] = smoothedResult;
         }
       }
 
@@ -66,8 +93,8 @@ class BleRouter {
 
     // Periodic tick to prune and publish even without new scan events
     _tickTimer?.cancel();
-    // Zamanlayıcıyı 500ms'den 200ms'ye düşürerek tepkiselliği artırdık
-    _tickTimer = Timer.periodic(const Duration(milliseconds: 200), (_) {
+    // Daha optimize edilmiş zamanlayıcı - 150ms için daha hızlı tepki
+    _tickTimer = Timer.periodic(const Duration(milliseconds: 150), (_) {
       _publish(DateTime.now());
     });
   }
@@ -83,6 +110,7 @@ class BleRouter {
     _scanningCtrl.add(false);
     _lastSeenById.clear();
     _lastResultById.clear();
+    _rssiHistory.clear(); // RSSI geçmişini de temizle
     _publishedTopId = null;
     _devicesCtrl.add(const []);
     _topCtrl.add(null);

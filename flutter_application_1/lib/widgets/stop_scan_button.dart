@@ -31,37 +31,41 @@ class StopScanButton extends StatelessWidget {
     final size = MediaQuery.of(context).size;
     final isWide = size.width > 480;
 
-    // Butonun responsive ve temalı görünümü
-    final btn = ElevatedButton.icon(
-      onPressed: () => _stopAndHome(context),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: warningRed, // Uyarı/Durdurma eylemi için kırmızı
-        foregroundColor: Colors.white,
-
-        // Gövde ve yuvarlatılmış köşeler eklendi (Temaya uyum)
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-
-        // Boyutlandırma ve Responsive Kontrol
-        minimumSize: Size(
-          fullWidth
-              ? double.infinity
-              : 180, // fullWidth true ise tüm genişliği kapla
-          isWide ? 56 : 48, // Geniş ekranlarda daha büyük
+    final btn = Container(
+      width: fullWidth ? double.infinity : 200,
+      height: isWide ? 56 : 48,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.red.shade400, Colors.red.shade600],
         ),
-        padding: EdgeInsets.symmetric(
-          horizontal: isWide ? 24 : 16,
-          vertical: isWide ? 16 : 12,
-        ),
-        textStyle: TextStyle(
-          fontSize: isWide ? 18 : 16,
-          fontWeight: FontWeight.bold, // Kalın font ile vurgu
-        ),
-
-        // Hafif gölge ekleyerek daha modern bir görünüm (İsteğe bağlı)
-        elevation: 4,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.red.withOpacity(0.3),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-      icon: const Icon(Icons.stop),
-      label: const Text('Taramayı Durdur'),
+      child: ElevatedButton.icon(
+        onPressed: () => _stopAndHome(context),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.transparent,
+          foregroundColor: Colors.white,
+          shadowColor: Colors.transparent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+        ),
+        icon: const Icon(Icons.stop_circle_rounded, size: 20),
+        label: Text(
+          'Taramayı Durdur',
+          style: TextStyle(
+            fontSize: isWide ? 16 : 14,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
     );
 
     return Padding(padding: padding, child: btn);

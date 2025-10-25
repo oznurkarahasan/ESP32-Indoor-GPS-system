@@ -22,50 +22,58 @@ class FloorMapView extends StatelessWidget {
     required this.mapImageUrl,
   });
 
-  static const Color primaryOrange = Color(0xFFFF9800);
+  static const Color primaryOrange = Color(0xFFFF6B35);
+  static const Color accentOrange = Color(0xFFFFB199);
 
-  // Arama Kutusu ve Mikrofon Bölümü
+  // Modern arama kutusu ve mikrofon bölümü
   Widget _buildSearchAndMic() {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: isWide ? 32 : 16, vertical: 16),
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: isWide ? 24 : 16, vertical: 16),
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.2),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Arama Kutusu (Expanded)
+          // Arama Kutusu
           Expanded(
             child: GestureDetector(
-              onTap: onSearchTap, // Ana sayfadan gelen metodu çağırır
+              onTap: onSearchTap,
               child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(
-                  vertical: 12,
-                  horizontal: 16,
-                ),
+                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
                 decoration: BoxDecoration(
-                  color: primaryOrange.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(30),
-                  border: Border.all(color: primaryOrange, width: 1.5),
-                  // Dinleniyorsa hafif bir gölge ekle
-                  boxShadow: isMicListening
-                      ? [
-                          BoxShadow(
-                            color: primaryOrange.withOpacity(0.4),
-                            blurRadius: 10,
-                          ),
-                        ]
-                      : null,
+                  color: Colors.grey.shade50,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: isMicListening 
+                        ? primaryOrange 
+                        : Colors.grey.shade300,
+                    width: isMicListening ? 2 : 1,
+                  ),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.search, color: primaryOrange),
-                    const SizedBox(width: 10),
-                    Flexible(
+                    Icon(
+                      Icons.search_rounded,
+                      color: primaryOrange,
+                      size: 24,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
                       child: Text(
-                        'Nereye gitmek istersiniz?',
+                        'Nereye gitmek istiyorsunuz?',
                         style: TextStyle(
-                          fontSize: isWide ? 18 : 16,
-                          color: primaryOrange.withOpacity(0.8),
-                          overflow: TextOverflow.ellipsis,
+                          fontSize: isWide ? 16 : 15,
+                          color: Colors.grey.shade600,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),
@@ -74,39 +82,40 @@ class FloorMapView extends StatelessWidget {
               ),
             ),
           ),
-
-          const SizedBox(width: 10),
-
+          
+          const SizedBox(width: 8),
+          
           // Mikrofon Düğmesi
           Container(
-            width: isWide ? 52 : 44, // Responsive boyut
-            height: isWide ? 52 : 44,
+            width: 48,
+            height: 48,
             decoration: BoxDecoration(
-              color: isMicListening
-                  ? Colors.redAccent
-                  : primaryOrange, // Dinliyorsa kırmızı, değilse turuncu
+              gradient: LinearGradient(
+                colors: isMicListening
+                    ? [Colors.red.shade400, Colors.red.shade600]
+                    : [primaryOrange, primaryOrange.withOpacity(0.8)],
+              ),
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: (isMicListening ? Colors.redAccent : primaryOrange)
-                      .withOpacity(0.4),
+                  color: (isMicListening ? Colors.red : primaryOrange)
+                      .withOpacity(0.3),
                   blurRadius: 8,
-                  offset: const Offset(0, 4),
+                  offset: const Offset(0, 2),
                 ),
               ],
             ),
-            child: IconButton(
-              icon: Icon(
-                isMicListening
-                    ? Icons.mic_off
-                    : Icons.mic, // Dinleme durumuna göre ikon değişimi
-                color: Colors.white,
-                size: isWide ? 26 : 22,
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(24),
+                onTap: onMicTap,
+                child: Icon(
+                  isMicListening ? Icons.mic_rounded : Icons.mic_none_rounded,
+                  color: Colors.white,
+                  size: 24,
+                ),
               ),
-              onPressed: onMicTap, // Ana sayfadan gelen dinleme fonksiyonu
-              tooltip: isMicListening
-                  ? 'Dinleniyor, Durdur'
-                  : 'Sesli Arama Başlat',
             ),
           ),
         ],
@@ -121,63 +130,135 @@ class FloorMapView extends StatelessWidget {
         // Arama Kutusu ve Mikrofon Bölümü
         _buildSearchAndMic(),
 
-        // Harita Görünümü Bölümü (GÖRSEL KULLANIMI BURADA BAŞLIYOR)
+        // Modern harita görünümü
         Expanded(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16.0,
-              vertical: 8.0,
-            ),
-            child: Container(
-              decoration: BoxDecoration(
-                border: Border.all(
-                  color: primaryOrange.withOpacity(0.5),
-                  width: 2,
+          child: Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.15),
+                  blurRadius: 15,
+                  offset: const Offset(0, 5),
                 ),
-                borderRadius: BorderRadius.circular(12),
-                color: Colors.grey.shade100,
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: Image.network(
-                  mapImageUrl,
-                  fit: BoxFit.contain,
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress == null) return child;
-                    return Center(
-                      child: CircularProgressIndicator(
-                        value: loadingProgress.expectedTotalBytes != null
-                            ? loadingProgress.cumulativeBytesLoaded /
-                                  loadingProgress.expectedTotalBytes!
-                            : null,
-                        color: primaryOrange,
-                      ),
-                    );
-                  },
-                  errorBuilder: (context, error, stackTrace) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(
-                            Icons.error_outline,
-                            color: Colors.red,
-                            size: 40,
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: Stack(
+                children: [
+                  // Harita resmi
+                  Image.network(
+                    mapImageUrl,
+                    fit: BoxFit.contain,
+                    width: double.infinity,
+                    height: double.infinity,
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return Container(
+                        color: Colors.grey.shade50,
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              SizedBox(
+                                width: 40,
+                                height: 40,
+                                child: CircularProgressIndicator(
+                                  value: loadingProgress.expectedTotalBytes != null
+                                      ? loadingProgress.cumulativeBytesLoaded /
+                                          loadingProgress.expectedTotalBytes!
+                                      : null,
+                                  color: primaryOrange,
+                                  strokeWidth: 3,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'Harita yükleniyor...',
+                                style: TextStyle(
+                                  color: Colors.grey.shade600,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 10),
-                          Text(
-                            "$floorName Haritası Yüklenemedi.",
-                            style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                      );
+                    },
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        color: Colors.grey.shade50,
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: Colors.red.shade50,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  Icons.map_outlined,
+                                  color: Colors.red.shade400,
+                                  size: 48,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                '$floorName Haritası',
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Harita yüklenemedi',
+                                style: TextStyle(
+                                  color: Colors.grey.shade600,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
                           ),
-                          const Text(
-                            "URL veya erişim iznini kontrol edin.",
-                            style: TextStyle(color: Colors.black54),
+                        ),
+                      );
+                    },
+                  ),
+                  
+                  // Kat bilgisi overlay
+                  Positioned(
+                    top: 16,
+                    left: 16,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: primaryOrange.withOpacity(0.9),
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: primaryOrange.withOpacity(0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
                           ),
                         ],
                       ),
-                    );
-                  },
-                ),
+                      child: Text(
+                        floorName,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
