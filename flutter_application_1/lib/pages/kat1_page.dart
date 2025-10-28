@@ -20,12 +20,9 @@ class Kat1Page extends StatefulWidget {
   State<Kat1Page> createState() => _Kat1PageState();
 }
 
-class _Kat1PageState extends State<Kat1Page>
-    with TickerProviderStateMixin {
+class _Kat1PageState extends State<Kat1Page> with TickerProviderStateMixin {
   // Modern tema renkleri
   static const Color primaryOrange = Color(0xFFFF6B35);
-  static const Color accentOrange = Color(0xFFFFB199);
-  static const Color darkOrange = Color(0xFFE55100);
   static const Color successGreen = Color(0xFF4CAF50);
   static const Color micActiveColor = Color(0xFFE91E63);
 
@@ -74,48 +71,65 @@ class _Kat1PageState extends State<Kat1Page>
       vsync: this,
     );
 
-    _micPulseAnimation = Tween<double>(
-      begin: 1.0,
-      end: 1.3,
-    ).animate(CurvedAnimation(
-      parent: _micPulseController,
-      curve: Curves.easeInOut,
-    ));
+    _micPulseAnimation = Tween<double>(begin: 1.0, end: 1.3).animate(
+      CurvedAnimation(parent: _micPulseController, curve: Curves.easeInOut),
+    );
 
-    _listeningAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _listeningController,
-      curve: Curves.elasticOut,
-    ));
+    _listeningAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _listeningController, curve: Curves.elasticOut),
+    );
 
-    _micColorAnimation = ColorTween(
-      begin: primaryOrange,
-      end: micActiveColor,
-    ).animate(CurvedAnimation(
-      parent: _listeningController,
-      curve: Curves.easeInOut,
-    ));
+    _micColorAnimation = ColorTween(begin: primaryOrange, end: micActiveColor)
+        .animate(
+          CurvedAnimation(
+            parent: _listeningController,
+            curve: Curves.easeInOut,
+          ),
+        );
   }
 
   Future<void> _initializeSpeechRecognition() async {
-    var status = await Permission.microphone.request();
+    try {
+      var status = await Permission.microphone.request();
+      if (!mounted) return;
 
-    if (status.isGranted) {
-      bool available = await _speechToText.initialize(
-        onError: (e) => debugPrint('STT Error: ${e.errorMsg}'),
-      );
-      if (mounted) {
+      if (status.isGranted) {
+        bool available = await _speechToText.initialize(
+          onError: (error) {
+            debugPrint('STT Error: ${error.errorMsg}');
+            _showSnack('Ses tanıma hatası: ${error.errorMsg}');
+            _stopListening();
+          },
+          onStatus: (status) {
+            debugPrint('STT Status: $status');
+          },
+        );
+
+        if (!mounted) return;
         setState(() {
           _speechEnabled = available;
           if (!available) {
-            _showSnack('Sesli komut servisi kullanılamıyor.');
+            _showSnack(
+              'Sesli komut servisi kullanılamıyor. Lütfen cihaz ayarlarınızı kontrol edin.',
+            );
           }
         });
+      } else if (status.isDenied) {
+        _showSnack(
+          'Sesli komut için mikrofon izni reddedildi. Ayarlardan izin vermeniz gerekiyor.',
+        );
+      } else if (status.isPermanentlyDenied) {
+        _showSnack(
+          'Mikrofon izni kalıcı olarak reddedildi. Lütfen cihaz ayarlarından manuel olarak izin verin.',
+        );
+      } else {
+        _showSnack('Sesli komut için mikrofon izni gereklidir.');
       }
-    } else {
-      _showSnack('Sesli komut için mikrofon izni gereklidir.');
+    } catch (e) {
+      debugPrint('Speech recognition initialization error: $e');
+      if (mounted) {
+        _showSnack('Ses tanıma servisi başlatılırken bir hata oluştu.');
+      }
     }
   }
 
@@ -132,11 +146,11 @@ class _Kat1PageState extends State<Kat1Page>
 
     _lastWords = '';
     setState(() => _isListening = true);
-    
+
     // Animasyonları başlat
     _listeningController.forward();
     _micPulseController.repeat(reverse: true);
-    
+
     // Haptic feedback
     HapticFeedback.mediumImpact();
 
@@ -162,11 +176,11 @@ class _Kat1PageState extends State<Kat1Page>
     _speechToText.stop();
     _listeningController.reverse();
     _micPulseController.stop();
-    
+
     if (mounted) {
       setState(() => _isListening = false);
     }
-    
+
     HapticFeedback.lightImpact();
   }
 
@@ -201,10 +215,8 @@ class _Kat1PageState extends State<Kat1Page>
 
       Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (context) => NavigationPage(
-            startPOI: 'Kat 1 ZON',
-            endPOI: targetPOI,
-          ),
+          builder: (context) =>
+              NavigationPage(startPOI: 'Kat 1 ZON', endPOI: targetPOI),
         ),
       );
     } catch (e) {
@@ -214,8 +226,12 @@ class _Kat1PageState extends State<Kat1Page>
 
   void _openLocationSearch() {
     final allBuildingPOIs = BuildingData.allPOIs;
-    final kat1POIs = allBuildingPOIs.where((poi) => poi.floor == 'Kat 1').toList();
-    final otherPOIs = allBuildingPOIs.where((poi) => poi.floor != 'Kat 1').toList();
+    final kat1POIs = allBuildingPOIs
+        .where((poi) => poi.floor == 'Kat 1')
+        .toList();
+    final otherPOIs = allBuildingPOIs
+        .where((poi) => poi.floor != 'Kat 1')
+        .toList();
 
     showModalBottomSheet(
       context: context,
@@ -229,10 +245,12 @@ class _Kat1PageState extends State<Kat1Page>
           return Container(
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(25),
+              ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: Colors.black.withAlpha(26),
                   blurRadius: 20,
                   offset: const Offset(0, -5),
                 ),
@@ -250,7 +268,7 @@ class _Kat1PageState extends State<Kat1Page>
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
-                
+
                 // Header
                 Container(
                   padding: const EdgeInsets.all(20),
@@ -259,7 +277,7 @@ class _Kat1PageState extends State<Kat1Page>
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: primaryOrange.withOpacity(0.1),
+                          color: primaryOrange.withAlpha(26),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Icon(
@@ -295,7 +313,7 @@ class _Kat1PageState extends State<Kat1Page>
                     ],
                   ),
                 ),
-                
+
                 // Tüm yerler listesi
                 Expanded(
                   child: ListView(
@@ -304,10 +322,17 @@ class _Kat1PageState extends State<Kat1Page>
                       // Bu kattaki yerler
                       if (kat1POIs.isNotEmpty) ...[
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 12,
+                          ),
                           child: Row(
                             children: [
-                              Icon(Icons.location_on_rounded, color: successGreen, size: 20),
+                              Icon(
+                                Icons.location_on_rounded,
+                                color: successGreen,
+                                size: 20,
+                              ),
                               const SizedBox(width: 8),
                               Text(
                                 'Bu Kattaki Yerler',
@@ -323,14 +348,21 @@ class _Kat1PageState extends State<Kat1Page>
                         ...kat1POIs.map((poi) => _buildPOITile(poi, true)),
                         const SizedBox(height: 16),
                       ],
-                      
+
                       // Diğer katlardaki yerler
                       if (otherPOIs.isNotEmpty) ...[
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 12,
+                          ),
                           child: Row(
                             children: [
-                              Icon(Icons.stairs_rounded, color: Colors.blue, size: 20),
+                              Icon(
+                                Icons.stairs_rounded,
+                                color: Colors.blue,
+                                size: 20,
+                              ),
                               const SizedBox(width: 8),
                               Text(
                                 'Diğer Katlardaki Yerler',
@@ -380,10 +412,12 @@ class _Kat1PageState extends State<Kat1Page>
               child: Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12),
-                  color: Colors.black.withOpacity(0.3),
+                  color: Colors.black.withAlpha(77),
                 ),
                 child: Icon(
-                  isCurrentFloor ? Icons.location_on_rounded : Icons.stairs_rounded,
+                  isCurrentFloor
+                      ? Icons.location_on_rounded
+                      : Icons.stairs_rounded,
                   color: Colors.white,
                   size: 24,
                 ),
@@ -405,11 +439,14 @@ class _Kat1PageState extends State<Kat1Page>
                   Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
-                          color: isCurrentFloor 
-                              ? successGreen.withOpacity(0.1)
-                              : Colors.blue.withOpacity(0.1),
+                          color: isCurrentFloor
+                              ? successGreen.withAlpha(26)
+                              : Colors.blue.withAlpha(26),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
@@ -424,7 +461,9 @@ class _Kat1PageState extends State<Kat1Page>
                       if (!isCurrentFloor) ...[
                         const SizedBox(width: 8),
                         Icon(
-                          poi.floor == 'Zemin' ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded,
+                          poi.floor == 'Zemin'
+                              ? Icons.arrow_downward_rounded
+                              : Icons.arrow_upward_rounded,
                           size: 16,
                           color: Colors.grey.shade600,
                         ),
@@ -473,9 +512,7 @@ class _Kat1PageState extends State<Kat1Page>
         child: Column(
           children: [
             _buildSearchSection(),
-            Expanded(
-              child: _buildMapSection(),
-            ),
+            Expanded(child: _buildMapSection()),
             if (_isListening) _buildListeningIndicator(),
             const StopScanButton(),
           ],
@@ -493,7 +530,7 @@ class _Kat1PageState extends State<Kat1Page>
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.2),
+            color: Colors.grey.withAlpha(51),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -505,36 +542,37 @@ class _Kat1PageState extends State<Kat1Page>
             child: GestureDetector(
               onTap: _openLocationSearch,
               child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 16,
+                  horizontal: 20,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.grey.shade50,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: _isListening 
-                        ? micActiveColor 
-                        : Colors.grey.shade300,
+                    color: _isListening ? micActiveColor : Colors.grey.shade300,
                     width: _isListening ? 2 : 1,
                   ),
                 ),
                 child: Row(
                   children: [
-                    Icon(
-                      Icons.search_rounded,
-                      color: primaryOrange,
-                      size: 24,
-                    ),
+                    Icon(Icons.search_rounded, color: primaryOrange, size: 24),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        _isListening 
-                            ? (_lastWords.isEmpty ? 'Dinleniyor...' : _lastWords)
+                        _isListening
+                            ? (_lastWords.isEmpty
+                                  ? 'Dinleniyor...'
+                                  : _lastWords)
                             : 'Nereye gitmek istiyorsunuz?',
                         style: TextStyle(
                           fontSize: 16,
-                          color: _isListening 
-                              ? micActiveColor 
+                          color: _isListening
+                              ? micActiveColor
                               : Colors.grey.shade600,
-                          fontWeight: _isListening ? FontWeight.w600 : FontWeight.w500,
+                          fontWeight: _isListening
+                              ? FontWeight.w600
+                              : FontWeight.w500,
                         ),
                       ),
                     ),
@@ -543,9 +581,9 @@ class _Kat1PageState extends State<Kat1Page>
               ),
             ),
           ),
-          
+
           const SizedBox(width: 8),
-          
+
           _buildMicrophoneButton(),
         ],
       ),
@@ -564,14 +602,14 @@ class _Kat1PageState extends State<Kat1Page>
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: _isListening
-                    ? [micActiveColor, micActiveColor.withOpacity(0.8)]
-                    : [primaryOrange, primaryOrange.withOpacity(0.8)],
+                    ? [micActiveColor, micActiveColor.withAlpha(204)]
+                    : [primaryOrange, primaryOrange.withAlpha(204)],
               ),
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
                   color: (_isListening ? micActiveColor : primaryOrange)
-                      .withOpacity(0.4),
+                      .withAlpha(102),
                   blurRadius: _isListening ? 16 : 8,
                   offset: const Offset(0, 4),
                 ),
@@ -603,7 +641,7 @@ class _Kat1PageState extends State<Kat1Page>
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.15),
+            color: Colors.grey.withAlpha(38),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
@@ -618,6 +656,8 @@ class _Kat1PageState extends State<Kat1Page>
               fit: BoxFit.contain,
               width: double.infinity,
               height: double.infinity,
+              cacheWidth: MediaQuery.of(context).size.width.toInt(),
+              cacheHeight: MediaQuery.of(context).size.height.toInt(),
               loadingBuilder: (context, child, loadingProgress) {
                 if (loadingProgress == null) return child;
                 return Container(
@@ -632,7 +672,7 @@ class _Kat1PageState extends State<Kat1Page>
                           child: CircularProgressIndicator(
                             value: loadingProgress.expectedTotalBytes != null
                                 ? loadingProgress.cumulativeBytesLoaded /
-                                    loadingProgress.expectedTotalBytes!
+                                      loadingProgress.expectedTotalBytes!
                                 : null,
                             color: primaryOrange,
                             strokeWidth: 3,
@@ -693,19 +733,22 @@ class _Kat1PageState extends State<Kat1Page>
                 );
               },
             ),
-            
+
             // Kat bilgisi overlay
             Positioned(
               top: 16,
               left: 16,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
-                  color: primaryOrange.withOpacity(0.9),
+                  color: primaryOrange.withAlpha(230),
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: primaryOrange.withOpacity(0.3),
+                      color: primaryOrange.withAlpha(77),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
@@ -737,15 +780,12 @@ class _Kat1PageState extends State<Kat1Page>
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                micActiveColor.withOpacity(0.1),
-                micActiveColor.withOpacity(0.05),
+                micActiveColor.withAlpha(26),
+                micActiveColor.withAlpha(13),
               ],
             ),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: micActiveColor.withOpacity(0.3),
-              width: 2,
-            ),
+            border: Border.all(color: micActiveColor.withAlpha(77), width: 2),
           ),
           child: Row(
             children: [
@@ -775,8 +815,8 @@ class _Kat1PageState extends State<Kat1Page>
                       ),
                     ),
                     Text(
-                      _lastWords.isEmpty 
-                          ? 'Lütfen hedef yerinizi söyleyin...' 
+                      _lastWords.isEmpty
+                          ? 'Lütfen hedef yerinizi söyleyin...'
                           : '"$_lastWords"',
                       style: TextStyle(
                         color: Colors.grey.shade700,

@@ -210,7 +210,7 @@ class NavigationView extends StatelessWidget {
               borderRadius: BorderRadius.circular(15),
               color: Colors.black,
               boxShadow: [
-                BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 10),
+                BoxShadow(color: Colors.black.withAlpha(51), blurRadius: 10),
               ],
             ),
             child: ClipRRect(
@@ -234,7 +234,7 @@ class NavigationView extends StatelessWidget {
                       duration: const Duration(milliseconds: 300),
                       child: Container(
                         // Renk opacity'si için withOpacity kullanıldı
-                        color: Colors.black.withOpacity(0.54),
+                        color: Colors.black.withAlpha(138),
                         child: Center(
                           child: IconButton(
                             icon: Icon(

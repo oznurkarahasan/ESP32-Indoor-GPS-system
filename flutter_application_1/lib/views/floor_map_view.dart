@@ -35,7 +35,7 @@ class FloorMapView extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.2),
+            color: Colors.grey.withAlpha(51),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -48,24 +48,23 @@ class FloorMapView extends StatelessWidget {
             child: GestureDetector(
               onTap: onSearchTap,
               child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 16,
+                  horizontal: 20,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.grey.shade50,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: isMicListening 
-                        ? primaryOrange 
+                    color: isMicListening
+                        ? primaryOrange
                         : Colors.grey.shade300,
                     width: isMicListening ? 2 : 1,
                   ),
                 ),
                 child: Row(
                   children: [
-                    Icon(
-                      Icons.search_rounded,
-                      color: primaryOrange,
-                      size: 24,
-                    ),
+                    Icon(Icons.search_rounded, color: primaryOrange, size: 24),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
@@ -82,9 +81,9 @@ class FloorMapView extends StatelessWidget {
               ),
             ),
           ),
-          
+
           const SizedBox(width: 8),
-          
+
           // Mikrofon Düğmesi
           Container(
             width: 48,
@@ -93,13 +92,13 @@ class FloorMapView extends StatelessWidget {
               gradient: LinearGradient(
                 colors: isMicListening
                     ? [Colors.red.shade400, Colors.red.shade600]
-                    : [primaryOrange, primaryOrange.withOpacity(0.8)],
+                    : [primaryOrange, primaryOrange.withAlpha(204)],
               ),
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
                   color: (isMicListening ? Colors.red : primaryOrange)
-                      .withOpacity(0.3),
+                      .withAlpha(77),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -139,7 +138,7 @@ class FloorMapView extends StatelessWidget {
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.grey.withOpacity(0.15),
+                  color: Colors.grey.withAlpha(38),
                   blurRadius: 15,
                   offset: const Offset(0, 5),
                 ),
@@ -167,9 +166,10 @@ class FloorMapView extends StatelessWidget {
                                 width: 40,
                                 height: 40,
                                 child: CircularProgressIndicator(
-                                  value: loadingProgress.expectedTotalBytes != null
+                                  value:
+                                      loadingProgress.expectedTotalBytes != null
                                       ? loadingProgress.cumulativeBytesLoaded /
-                                          loadingProgress.expectedTotalBytes!
+                                            loadingProgress.expectedTotalBytes!
                                       : null,
                                   color: primaryOrange,
                                   strokeWidth: 3,
@@ -230,19 +230,22 @@ class FloorMapView extends StatelessWidget {
                       );
                     },
                   ),
-                  
+
                   // Kat bilgisi overlay
                   Positioned(
                     top: 16,
                     left: 16,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
                       decoration: BoxDecoration(
-                        color: primaryOrange.withOpacity(0.9),
+                        color: primaryOrange.withAlpha(230),
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: [
                           BoxShadow(
-                            color: primaryOrange.withOpacity(0.3),
+                            color: primaryOrange.withAlpha(77),
                             blurRadius: 8,
                             offset: const Offset(0, 2),
                           ),

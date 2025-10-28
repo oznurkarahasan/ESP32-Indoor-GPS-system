@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   const CustomAppBar({super.key, required this.title});
-  
+
   static const Color primaryOrange = Color(0xFFFF6B35);
   static const Color darkOrange = Color(0xFFE55100);
-  
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -18,7 +18,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: primaryOrange.withOpacity(0.3),
+            color: primaryOrange.withAlpha(77),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),

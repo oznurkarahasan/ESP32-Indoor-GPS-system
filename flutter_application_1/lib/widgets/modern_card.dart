@@ -25,20 +25,22 @@ class ModernCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final defaultBorderRadius = BorderRadius.circular(16);
-    
+
     Widget card = Container(
       margin: margin ?? const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: backgroundColor ?? Colors.white,
         borderRadius: borderRadius ?? defaultBorderRadius,
-        boxShadow: showShadow ? [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-            spreadRadius: 2,
-          ),
-        ] : null,
+        boxShadow: showShadow
+            ? [
+                BoxShadow(
+                  color: Colors.grey.withAlpha(26),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                  spreadRadius: 2,
+                ),
+              ]
+            : null,
       ),
       child: Padding(
         padding: padding ?? const EdgeInsets.all(16),
@@ -86,7 +88,9 @@ class ModernInfoCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: (iconColor ?? Theme.of(context).primaryColor).withOpacity(0.1),
+              color: (iconColor ?? Theme.of(context).primaryColor).withAlpha(
+                26,
+              ),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
@@ -110,10 +114,7 @@ class ModernInfoCard extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   subtitle,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey.shade600,
-                  ),
+                  style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
                 ),
               ],
             ),

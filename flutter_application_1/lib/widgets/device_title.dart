@@ -45,12 +45,12 @@ class DeviceTile extends StatelessWidget {
           height: 56,
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [primaryOrange.withOpacity(0.8), primaryOrange],
+              colors: [primaryOrange.withAlpha(204), primaryOrange],
             ),
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: primaryOrange.withOpacity(0.3),
+                color: primaryOrange.withAlpha(77),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
@@ -59,11 +59,7 @@ class DeviceTile extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.location_on_rounded,
-                color: Colors.white,
-                size: 20,
-              ),
+              Icon(Icons.location_on_rounded, color: Colors.white, size: 20),
               Text(
                 name.substring(0, name.length > 3 ? 3 : name.length),
                 style: const TextStyle(
@@ -77,10 +73,7 @@ class DeviceTile extends StatelessWidget {
         ),
         title: Text(
           name,
-          style: const TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: 16,
-          ),
+          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
         ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -88,11 +81,7 @@ class DeviceTile extends StatelessWidget {
             const SizedBox(height: 4),
             Row(
               children: [
-                Icon(
-                  signalIcon,
-                  color: signalColor,
-                  size: 16,
-                ),
+                Icon(signalIcon, color: signalColor, size: 16),
                 const SizedBox(width: 4),
                 Text(
                   '$signalStrength (${result.rssi} dBm)',
@@ -107,19 +96,16 @@ class DeviceTile extends StatelessWidget {
             const SizedBox(height: 2),
             Text(
               result.device.remoteId.str,
-              style: TextStyle(
-                color: Colors.grey.shade600,
-                fontSize: 11,
-              ),
+              style: TextStyle(color: Colors.grey.shade600, fontSize: 11),
             ),
           ],
         ),
         trailing: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
-            color: signalColor.withOpacity(0.1),
+            color: signalColor.withAlpha(26),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: signalColor.withOpacity(0.3)),
+            border: Border.all(color: signalColor.withAlpha(77)),
           ),
           child: Text(
             '${result.rssi}',

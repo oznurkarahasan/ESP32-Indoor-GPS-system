@@ -25,23 +25,18 @@ class _NavigationPageState extends State<NavigationPage>
     with TickerProviderStateMixin {
   // Modern tema renkleri
   static const Color primaryOrange = Color(0xFFFF6B35);
-  static const Color accentOrange = Color(0xFFFFB199);
-  static const Color darkOrange = Color(0xFFE55100);
   static const Color successGreen = Color(0xFF4CAF50);
-  static const Color warningRed = Color(0xFFF44336);
 
   // Video oynatıcı durum yönetimi
   late VideoPlayerController _controller;
   bool _isControllerReady = false;
   bool _isPlaying = false;
   bool _isMuted = true;
-  bool _isFullscreen = false;
-  
+
   // Navigasyon durumu
   late NavVideo _routeVideo;
   bool _isNavigationStarted = false;
-  bool _isNavigationCompleted = false;
-  
+
   // Animasyon kontrolcüleri
   late AnimationController _progressController;
   late Animation<double> _progressAnimation;
@@ -69,35 +64,33 @@ class _NavigationPageState extends State<NavigationPage>
       vsync: this,
     );
 
-    _progressAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _progressController,
-      curve: Curves.easeInOut,
-    ));
+    _progressAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _progressController, curve: Curves.easeInOut),
+    );
   }
 
   Future<void> _initializeVideoPlayer() async {
     final url = _routeVideo.url;
 
     _controller = VideoPlayerController.networkUrl(Uri.parse(url))
-      ..initialize().then((_) {
-        if (mounted) {
-          setState(() {
-            _isControllerReady = true;
-            _controller.setLooping(true);
-            _controller.setVolume(0.0);
+      ..initialize()
+          .then((_) {
+            if (mounted) {
+              setState(() {
+                _isControllerReady = true;
+                _controller.setLooping(true);
+                _controller.setVolume(0.0);
+              });
+            }
+          })
+          .catchError((e) {
+            debugPrint("Video Oynatma Hatası: $e");
+            if (mounted) {
+              setState(() {
+                _isControllerReady = false;
+              });
+            }
           });
-        }
-      }).catchError((e) {
-        debugPrint("Video Oynatma Hatası: $e");
-        if (mounted) {
-          setState(() {
-            _isControllerReady = false;
-          });
-        }
-      });
   }
 
   // Rota videosunu bulma mantığı
@@ -119,15 +112,15 @@ class _NavigationPageState extends State<NavigationPage>
 
   void _startNavigation() {
     if (!_isControllerReady) return;
-    
+
     setState(() {
       _isNavigationStarted = true;
       _isPlaying = true;
     });
-    
+
     _controller.play();
     _progressController.forward();
-    
+
     // Haptic feedback
     HapticFeedback.lightImpact();
   }
@@ -146,7 +139,7 @@ class _NavigationPageState extends State<NavigationPage>
         _progressController.forward();
       }
     });
-    
+
     HapticFeedback.selectionClick();
   }
 
@@ -161,31 +154,27 @@ class _NavigationPageState extends State<NavigationPage>
       _isPlaying = false;
       _isNavigationStarted = false;
     });
-    
+
     HapticFeedback.mediumImpact();
   }
 
   void _toggleMute() {
     if (!_isControllerReady) return;
-    
+
     setState(() {
       _isMuted = !_isMuted;
       _controller.setVolume(_isMuted ? 0.0 : 1.0);
     });
-    
+
     HapticFeedback.selectionClick();
   }
 
   void _onNavigationFinished() {
-    setState(() {
-      _isNavigationCompleted = true;
-    });
-    
     _controller.pause();
     _progressController.forward();
-    
+
     HapticFeedback.heavyImpact();
-    
+
     // Başarı mesajı göster
     _showSuccessDialog();
   }
@@ -202,7 +191,7 @@ class _NavigationPageState extends State<NavigationPage>
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: successGreen.withOpacity(0.1),
+                color: successGreen.withAlpha(26),
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -258,12 +247,8 @@ class _NavigationPageState extends State<NavigationPage>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
-      appBar: CustomAppBar(
-        title: "Navigasyon: ${widget.endPOI.name}",
-      ),
-      body: SafeArea(
-        child: _buildBody(),
-      ),
+      appBar: CustomAppBar(title: "Navigasyon: ${widget.endPOI.name}"),
+      body: SafeArea(child: _buildBody()),
     );
   }
 
@@ -295,7 +280,7 @@ class _NavigationPageState extends State<NavigationPage>
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: primaryOrange.withOpacity(0.1),
+                  color: primaryOrange.withAlpha(26),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
@@ -345,10 +330,7 @@ class _NavigationPageState extends State<NavigationPage>
                 Expanded(
                   child: Text(
                     'Video rehberini takip ederek hedefinize güvenle ulaşın',
-                    style: TextStyle(
-                      color: Colors.blue.shade700,
-                      fontSize: 14,
-                    ),
+                    style: TextStyle(color: Colors.blue.shade700, fontSize: 14),
                   ),
                 ),
               ],
@@ -392,9 +374,7 @@ class _NavigationPageState extends State<NavigationPage>
           borderRadius: BorderRadius.circular(12),
         ),
         child: const Center(
-          child: ModernLoading(
-            message: 'Video yükleniyor...',
-          ),
+          child: ModernLoading(message: 'Video yükleniyor...'),
         ),
       );
     }
@@ -405,7 +385,7 @@ class _NavigationPageState extends State<NavigationPage>
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withAlpha(230),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -415,18 +395,15 @@ class _NavigationPageState extends State<NavigationPage>
         borderRadius: BorderRadius.circular(12),
         child: Stack(
           children: [
-            AspectRatio(
-              aspectRatio: 16 / 9,
-              child: VideoPlayer(_controller),
-            ),
+            AspectRatio(aspectRatio: 16 / 9, child: VideoPlayer(_controller)),
             if (!_isPlaying)
               Container(
-                color: Colors.black.withOpacity(0.3),
+                color: Colors.black.withAlpha(77),
                 child: Center(
                   child: Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.9),
+                      color: Colors.white.withAlpha(230),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
@@ -443,7 +420,7 @@ class _NavigationPageState extends State<NavigationPage>
               child: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.6),
+                  color: Colors.black.withAlpha(153),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Icon(
@@ -517,12 +494,12 @@ class _NavigationPageState extends State<NavigationPage>
       height: 64,
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [primaryOrange, darkOrange],
+          colors: [primaryOrange, primaryOrange.withAlpha(204)],
         ),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: primaryOrange.withOpacity(0.4),
+            color: primaryOrange.withAlpha(102),
             blurRadius: 12,
             offset: const Offset(0, 6),
           ),
@@ -561,7 +538,9 @@ class _NavigationPageState extends State<NavigationPage>
           children: [
             Expanded(
               child: _buildControlButton(
-                icon: _isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                icon: _isPlaying
+                    ? Icons.pause_rounded
+                    : Icons.play_arrow_rounded,
                 label: _isPlaying ? 'Duraklat' : 'Oynat',
                 onPressed: _playPauseVideo,
                 color: Colors.blue,
@@ -597,7 +576,7 @@ class _NavigationPageState extends State<NavigationPage>
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: successGreen.withOpacity(0.3),
+                color: successGreen.withAlpha(77),
                 blurRadius: 8,
                 offset: const Offset(0, 4),
               ),
@@ -643,9 +622,9 @@ class _NavigationPageState extends State<NavigationPage>
         width: 48,
         height: 48,
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
+          color: color.withAlpha(26),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: color.withOpacity(0.3)),
+          border: Border.all(color: color.withAlpha(77)),
         ),
         child: IconButton(
           onPressed: onPressed,
@@ -657,9 +636,9 @@ class _NavigationPageState extends State<NavigationPage>
     return Container(
       height: 48,
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withAlpha(26),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withAlpha(77)),
       ),
       child: ElevatedButton.icon(
         onPressed: onPressed,
@@ -673,10 +652,7 @@ class _NavigationPageState extends State<NavigationPage>
         icon: Icon(icon, color: color, size: 20),
         label: Text(
           label,
-          style: TextStyle(
-            color: color,
-            fontWeight: FontWeight.w600,
-          ),
+          style: TextStyle(color: color, fontWeight: FontWeight.w600),
         ),
       ),
     );
@@ -702,7 +678,7 @@ class _NavigationPageState extends State<NavigationPage>
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.grey.withOpacity(0.1),
+                  color: Colors.grey.withAlpha(26),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -728,9 +704,7 @@ class _NavigationPageState extends State<NavigationPage>
                         const SizedBox(height: 8),
                         Text(
                           'Görsel yüklenemedi',
-                          style: TextStyle(
-                            color: Colors.grey.shade600,
-                          ),
+                          style: TextStyle(color: Colors.grey.shade600),
                         ),
                       ],
                     ),
@@ -745,7 +719,7 @@ class _NavigationPageState extends State<NavigationPage>
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: primaryOrange.withOpacity(0.1),
+                  color: primaryOrange.withAlpha(26),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(

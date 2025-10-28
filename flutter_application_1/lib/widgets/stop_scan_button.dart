@@ -41,7 +41,7 @@ class StopScanButton extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.red.withOpacity(0.3),
+            color: Colors.red.withAlpha(77),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),

@@ -3,12 +3,8 @@ import 'package:flutter/material.dart';
 class ModernLoading extends StatefulWidget {
   final String message;
   final Color? color;
-  
-  const ModernLoading({
-    super.key,
-    this.message = 'Yükleniyor...',
-    this.color,
-  });
+
+  const ModernLoading({super.key, this.message = 'Yükleniyor...', this.color});
 
   @override
   State<ModernLoading> createState() => _ModernLoadingState();
@@ -26,14 +22,11 @@ class _ModernLoadingState extends State<ModernLoading>
       duration: const Duration(seconds: 2),
       vsync: this,
     )..repeat();
-    
+
     _animation = Tween<double>(
       begin: 0,
       end: 1,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeInOut,
-    ));
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
@@ -45,7 +38,7 @@ class _ModernLoadingState extends State<ModernLoading>
   @override
   Widget build(BuildContext context) {
     final color = widget.color ?? Theme.of(context).primaryColor;
-    
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -58,11 +51,7 @@ class _ModernLoadingState extends State<ModernLoading>
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: SweepGradient(
-                  colors: [
-                    color.withOpacity(0.1),
-                    color,
-                    color.withOpacity(0.1),
-                  ],
+                  colors: [color.withAlpha(26), color, color.withAlpha(26)],
                   stops: const [0.0, 0.5, 1.0],
                   transform: GradientRotation(_animation.value * 2 * 3.14159),
                 ),
@@ -73,11 +62,7 @@ class _ModernLoadingState extends State<ModernLoading>
                   color: Colors.white,
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
-                  Icons.navigation_rounded,
-                  color: color,
-                  size: 24,
-                ),
+                child: Icon(Icons.navigation_rounded, color: color, size: 24),
               ),
             );
           },

@@ -63,7 +63,7 @@ class BleScannerView extends StatelessWidget {
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.blue.withOpacity(0.2),
+                      color: Colors.blue.withAlpha(51),
                       blurRadius: 20,
                       spreadRadius: 5,
                     ),
@@ -87,13 +87,16 @@ class BleScannerView extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 16,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.grey.withOpacity(0.1),
+                      color: Colors.grey.withAlpha(26),
                       blurRadius: 10,
                       spreadRadius: 2,
                     ),
@@ -120,7 +123,7 @@ class BleScannerView extends StatelessWidget {
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.blue.withOpacity(0.3),
+                      color: Colors.blue.withAlpha(77),
                       blurRadius: 8,
                       offset: const Offset(0, 4),
                     ),
@@ -157,7 +160,7 @@ class BleScannerView extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [lightBackground, accentOrange.withOpacity(0.1)],
+          colors: [lightBackground, accentOrange.withAlpha(26)],
         ),
       ),
       child: Center(
@@ -173,7 +176,7 @@ class BleScannerView extends StatelessWidget {
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: primaryOrange.withOpacity(0.2),
+                      color: primaryOrange.withAlpha(51),
                       blurRadius: 30,
                       spreadRadius: 10,
                     ),
@@ -213,7 +216,7 @@ class BleScannerView extends StatelessWidget {
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.grey.withOpacity(0.1),
+                      color: Colors.grey.withAlpha(26),
                       blurRadius: 15,
                       spreadRadius: 3,
                     ),
@@ -234,13 +237,11 @@ class BleScannerView extends StatelessWidget {
                 width: double.infinity,
                 height: 64,
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [primaryOrange, darkOrange],
-                  ),
+                  gradient: LinearGradient(colors: [primaryOrange, darkOrange]),
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: primaryOrange.withOpacity(0.4),
+                      color: primaryOrange.withAlpha(102),
                       blurRadius: 12,
                       offset: const Offset(0, 6),
                     ),
@@ -277,7 +278,7 @@ class BleScannerView extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [lightBackground, primaryOrange.withOpacity(0.05)],
+          colors: [lightBackground, primaryOrange.withAlpha(13)],
         ),
       ),
       child: Center(
@@ -293,7 +294,7 @@ class BleScannerView extends StatelessWidget {
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: primaryOrange.withOpacity(0.2),
+                      color: primaryOrange.withAlpha(51),
                       blurRadius: 20,
                       spreadRadius: 5,
                     ),
@@ -305,7 +306,7 @@ class BleScannerView extends StatelessWidget {
                   child: CircularProgressIndicator(
                     color: primaryOrange,
                     strokeWidth: 4,
-                    backgroundColor: primaryOrange.withOpacity(0.2),
+                    backgroundColor: primaryOrange.withAlpha(51),
                   ),
                 ),
               ),
@@ -321,13 +322,16 @@ class BleScannerView extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 16,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.grey.withOpacity(0.1),
+                      color: Colors.grey.withAlpha(26),
                       blurRadius: 10,
                       spreadRadius: 2,
                     ),
@@ -376,7 +380,7 @@ class BleScannerView extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
           decoration: BoxDecoration(
-            color: accentOrange.withOpacity(0.1),
+            color: accentOrange.withAlpha(26),
             border: Border(bottom: BorderSide(color: Colors.grey.shade300)),
           ),
           child: Row(
@@ -407,12 +411,12 @@ class BleScannerView extends StatelessWidget {
                     12,
                   ), // Daha yuvarlak köşeler
                   border: Border.all(
-                    color: primaryOrange.withOpacity(0.2),
+                    color: primaryOrange.withAlpha(51),
                     width: 1,
                   ), // Hafif bir çerçeve
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.grey.withOpacity(0.15),
+                      color: Colors.grey.withAlpha(38),
                       spreadRadius: 2,
                       blurRadius: 6,
                       offset: const Offset(0, 3),
