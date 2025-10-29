@@ -12,15 +12,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Set up Flutter
-        uses: flutter-actions/setup-flutter@v2
+      - name: Setup Java
+        uses: actions/setup-java@v4
         with:
-          version: "3.9.2"
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.5'
+          channel: 'stable'
           cache: true
 
-      - name: Install dependencies
+      - name: Get dependencies
         run: flutter pub get
 
       - name: Analyze code
@@ -35,22 +43,30 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Set up Flutter
-        uses: flutter-actions/setup-flutter@v2
+      - name: Setup Java
+        uses: actions/setup-java@v4
         with:
-          version: "3.9.2"
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.5'
+          channel: 'stable'
           cache: true
 
-      - name: Install dependencies
+      - name: Get dependencies
         run: flutter pub get
 
       - name: Build APK
         run: flutter build apk --release
 
       - name: Upload APK
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: release-apk
           path: build/app/outputs/flutter-apk/app-release.apk
@@ -61,17 +77,21 @@ jobs:
     runs-on: macos-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Set up Flutter
-        uses: flutter-actions/setup-flutter@v2
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
         with:
-          version: "3.9.2"
+          flutter-version: '3.24.5'
+          channel: 'stable'
           cache: true
 
-      - name: Install dependencies
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Setup CocoaPods
         run: |
-          flutter pub get
           cd ios
           pod install
           cd ..
@@ -80,7 +100,7 @@ jobs:
         run: flutter build ios --release --no-codesign --simulator
 
       - name: Upload iOS build
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ios-build
           path: build/ios/iphonesimulator/
@@ -93,7 +113,7 @@ jobs:
 
     steps:
       - name: Download all artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
 
       - name: Create Release
         id: create_release
