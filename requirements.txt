@@ -1,0 +1,86 @@
+# Flutter ESP32 Indoor GPS System Requirements
+
+## System Requirements
+- Flutter SDK: 3.13.9
+- Dart SDK: 3.2.6
+- Java JDK: 17 (for Android development)
+- Android SDK: API level 21+ (Android 5.0+)
+- iOS: 11.0+ (for iOS development)
+
+## Development Environment
+- Android Studio / VS Code with Flutter extensions
+- Xcode (for iOS development on macOS)
+- Git for version control
+
+## Flutter Dependencies (from pubspec.yaml)
+
+### Core Dependencies
+flutter: sdk
+
+### UI & Icons
+cupertino_icons: ^1.0.8
+
+### Bluetooth & Navigation
+flutter_blue_plus: ^2.0.0
+permission_handler: ^12.0.1
+video_player: ^2.10.0
+speech_to_text: ^7.3.0
+
+### Modern UI Components
+flutter_animate: ^4.5.0
+shimmer: ^3.0.0
+lottie: ^3.1.0
+
+### Development Dependencies
+flutter_test: sdk
+flutter_lints: ^5.0.0
+
+## Platform Specific Requirements
+
+### Android
+- minSdkVersion: 21
+- compileSdkVersion: 34
+- targetSdkVersion: 34
+- Gradle: 7.5+
+- Android Gradle Plugin: 7.3.0+
+
+### iOS
+- iOS Deployment Target: 11.0
+- Xcode: 14.0+
+- CocoaPods: 1.11.0+
+
+## Hardware Requirements
+- ESP32 development board
+- Bluetooth Low Energy (BLE) support
+- Minimum 4GB RAM for development
+- 10GB+ free disk space
+
+## Permissions Required
+- Bluetooth permissions
+- Location permissions
+- Microphone permissions (for speech-to-text)
+- Camera permissions (if using camera features)
+
+## Installation Commands
+```bash
+# Install Flutter dependencies
+flutter pub get
+
+# Check Flutter doctor
+flutter doctor
+
+# Run on Android
+flutter run
+
+# Build APK
+flutter build apk --release
+
+# Build iOS (macOS only)
+flutter build ios --release
+```
+
+## CI/CD
+- GitHub Actions workflow configured
+- Automated testing and building
+- APK and iOS build artifacts
+- Automatic releases on main branch push
