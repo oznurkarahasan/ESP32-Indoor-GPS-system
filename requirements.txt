@@ -1,8 +1,8 @@
 # Flutter ESP32 Indoor GPS System Requirements
 
 ## System Requirements
-- Flutter SDK: 3.10.6
-- Dart SDK: 3.1.5
+- Flutter SDK: 3.7.12
+- Dart SDK: 3.0.6
 - Java JDK: 17 (for Android development)
 - Android SDK: API level 21+ (Android 5.0+)
 - iOS: 11.0+ (for iOS development)
