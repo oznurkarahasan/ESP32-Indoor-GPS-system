@@ -31,7 +31,7 @@ class _NavigationPageState extends State<NavigationPage>
   late VideoPlayerController _controller;
   bool _isControllerReady = false;
   bool _isPlaying = false;
-  bool _isMuted = true;
+  // bool _isMuted = true; // <<< KALDIRILDI
 
   // Navigasyon durumu
   late NavVideo _routeVideo;
@@ -78,8 +78,8 @@ class _NavigationPageState extends State<NavigationPage>
             if (mounted) {
               setState(() {
                 _isControllerReady = true;
-                _controller.setLooping(true);
-                _controller.setVolume(0.0);
+                _controller.setLooping(false);
+                _controller.setVolume(0.0); // <<< SES KALICI OLARAK KAPATILDI
               });
             }
           })
@@ -119,7 +119,6 @@ class _NavigationPageState extends State<NavigationPage>
     });
 
     _controller.play();
-    _progressController.forward();
 
     // Haptic feedback
     HapticFeedback.lightImpact();
@@ -132,11 +131,9 @@ class _NavigationPageState extends State<NavigationPage>
       if (_controller.value.isPlaying) {
         _controller.pause();
         _isPlaying = false;
-        _progressController.stop();
       } else {
         _controller.play();
         _isPlaying = true;
-        _progressController.forward();
       }
     });
 
@@ -148,7 +145,6 @@ class _NavigationPageState extends State<NavigationPage>
 
     _controller.pause();
     _controller.seekTo(Duration.zero);
-    _progressController.reset();
 
     setState(() {
       _isPlaying = false;
@@ -158,6 +154,8 @@ class _NavigationPageState extends State<NavigationPage>
     HapticFeedback.mediumImpact();
   }
 
+  /*
+  // <<< _toggleMute FONKSİYONU KALDIRILDI
   void _toggleMute() {
     if (!_isControllerReady) return;
 
@@ -168,6 +166,7 @@ class _NavigationPageState extends State<NavigationPage>
 
     HapticFeedback.selectionClick();
   }
+  */
 
   void _onNavigationFinished() {
     _controller.pause();
@@ -380,9 +379,9 @@ class _NavigationPageState extends State<NavigationPage>
     }
 
     return Container(
-      height: 300,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
+        color: Colors.black,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withAlpha(230),
@@ -394,26 +393,43 @@ class _NavigationPageState extends State<NavigationPage>
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
         child: Stack(
+          alignment: Alignment.center,
           children: [
-            AspectRatio(aspectRatio: 16 / 9, child: VideoPlayer(_controller)),
+            AspectRatio(
+              aspectRatio: _controller.value.aspectRatio,
+              child: VideoPlayer(_controller),
+            ),
+            
             if (!_isPlaying)
-              Container(
-                color: Colors.black.withAlpha(77),
-                child: Center(
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withAlpha(230),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.play_arrow_rounded,
-                      size: 48,
-                      color: primaryOrange,
+              GestureDetector(
+                onTap: () { 
+                  if (!_isNavigationStarted) {
+                    _startNavigation();
+                  } else {
+                    _playPauseVideo();
+                  }
+                },
+                child: Container(
+                  color: Colors.black.withAlpha(77),
+                  child: Center(
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withAlpha(230),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.play_arrow_rounded,
+                        size: 48,
+                        color: primaryOrange,
+                      ),
                     ),
                   ),
                 ),
               ),
+
+            /*
+            // <<< SES DÜĞMESİ (OVERLAY) KALDIRILDI
             Positioned(
               top: 12,
               right: 12,
@@ -430,6 +446,7 @@ class _NavigationPageState extends State<NavigationPage>
                 ),
               ),
             ),
+            */
           ],
         ),
       ),
@@ -437,9 +454,18 @@ class _NavigationPageState extends State<NavigationPage>
   }
 
   Widget _buildProgressIndicator() {
-    return AnimatedBuilder(
-      animation: _progressAnimation,
-      builder: (context, child) {
+    return ValueListenableBuilder(
+      valueListenable: _controller,
+      builder: (context, VideoPlayerValue value, child) {
+        
+        double progress = 0.0;
+        if (value.isInitialized && value.duration.inMilliseconds > 0) {
+          progress = value.position.inMilliseconds / 
+                     value.duration.inMilliseconds;
+        }
+
+        progress = progress.clamp(0.0, 1.0);
+
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -455,7 +481,7 @@ class _NavigationPageState extends State<NavigationPage>
                   ),
                 ),
                 Text(
-                  '${(_progressAnimation.value * 100).toInt()}%',
+                  '${(progress * 100).toInt()}%',
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
@@ -466,7 +492,7 @@ class _NavigationPageState extends State<NavigationPage>
             ),
             const SizedBox(height: 8),
             LinearProgressIndicator(
-              value: _progressAnimation.value,
+              value: progress, 
               backgroundColor: Colors.grey.shade200,
               valueColor: AlwaysStoppedAnimation<Color>(primaryOrange),
               minHeight: 6,
@@ -555,6 +581,9 @@ class _NavigationPageState extends State<NavigationPage>
                 color: Colors.grey,
               ),
             ),
+            
+            // <<< SES KONTROL DÜĞMESİ KALDIRILDI
+            /*
             const SizedBox(width: 12),
             _buildControlButton(
               icon: _isMuted ? Icons.volume_off : Icons.volume_up,
@@ -563,6 +592,7 @@ class _NavigationPageState extends State<NavigationPage>
               color: Colors.orange,
               isIconOnly: true,
             ),
+            */
           ],
         ),
         const SizedBox(height: 16),

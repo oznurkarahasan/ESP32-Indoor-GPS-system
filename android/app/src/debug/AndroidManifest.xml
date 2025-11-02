@@ -22,7 +22,7 @@
     <!-- GEREKLİ İZİNLER BURADA BİTER -->
 
     <application
-        android:label="flutter_application_1"
+        android:label="Ornitorenk"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         tools:replace="android:label"> <!-- Çakışmayı çözmek için etiket korundu -->

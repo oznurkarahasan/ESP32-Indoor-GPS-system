@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:async';
+import 'package:cached_network_image/cached_network_image.dart'; // <<< YENİ IMPORT
 import '../services/ble_router.dart';
 import '../widgets/stop_scan_button.dart';
 import '../widgets/custom_appbar.dart';
@@ -11,7 +12,7 @@ import 'package:speech_to_text/speech_to_text.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 const String kat2HaritaUrl =
-    "https://drive.google.com/uc?export=view&id=19aQuVu_uz7_NT_w_UYpplAjR4AkwRF1J";
+    "https://drive.google.com/uc?export=view&id=1I2a_iSfLcC6sv1fpBG-5pDgNBxS8qxIg";
 
 class Kat2Page extends StatefulWidget {
   const Kat2Page({super.key});
@@ -34,6 +35,9 @@ class _Kat2PageState extends State<Kat2Page> with TickerProviderStateMixin {
   bool _speechEnabled = false;
   bool _isListening = false;
   String _lastWords = '';
+
+  // <<< YENİ DURUM DEĞİŞKENİ >>>
+  bool _isVoiceGuideEnabled = false;
 
   // Animasyon kontrolcüleri
   late AnimationController _micPulseController;
@@ -162,8 +166,32 @@ class _Kat2PageState extends State<Kat2Page> with TickerProviderStateMixin {
   void _handleVoiceCommand(String command) {
     if (command.isEmpty) return;
 
+    final String lowerCommand = command.toLowerCase();
+
     final target = BuildingData.allPOIs.firstWhere(
-      (poi) => command.toLowerCase().contains(poi.name.toLowerCase()),
+      (poi) {
+        final String lowerName = poi.name.toLowerCase();
+
+        // Kriter 1: POI'nin ana adı komutu içeriyor mu?
+        if (lowerName.contains(lowerCommand)) return true;
+
+        // Kriter 2: Komut, POI'nin ana adını içeriyor mu?
+        if (lowerCommand.contains(lowerName)) return true;
+
+        // Kriter 3: Takma adlardan (aliases) BİRİ eşleşiyor mu?
+        final bool aliasMatch = poi.aliases.any((alias) {
+          final String lowerAlias = alias.toLowerCase();
+
+          if (lowerCommand.contains(lowerAlias)) return true;
+          if (lowerAlias.contains(lowerCommand)) return true;
+
+          return false;
+        });
+
+        if (aliasMatch) return true;
+
+        return false;
+      },
       orElse: () => POI(name: 'NOT_FOUND', key: '', floor: '', imageUrl: ''),
     );
 
@@ -188,10 +216,12 @@ class _Kat2PageState extends State<Kat2Page> with TickerProviderStateMixin {
         (poi) => poi.name == destinationPOI,
       );
 
+      // Kat 2 için başlangıç POI adını doğrulayın
+      // 'LYEC Giriş (Kat 2)' veya 'Kat 2 ZON'
       Navigator.of(context).push(
         MaterialPageRoute(
           builder: (context) =>
-              NavigationPage(startPOI: 'Kat 2 ZON', endPOI: targetPOI),
+              NavigationPage(startPOI: 'LYEC Giriş (Kat 2)', endPOI: targetPOI),
         ),
       );
     } catch (e) {
@@ -201,12 +231,10 @@ class _Kat2PageState extends State<Kat2Page> with TickerProviderStateMixin {
 
   void _openLocationSearch() {
     final allBuildingPOIs = BuildingData.allPOIs;
-    final kat2POIs = allBuildingPOIs
-        .where((poi) => poi.floor == 'Kat 2')
-        .toList();
-    final otherPOIs = allBuildingPOIs
-        .where((poi) => poi.floor != 'Kat 2')
-        .toList();
+    final kat2POIs =
+        allBuildingPOIs.where((poi) => poi.floor == 'Kat 2').toList();
+    final otherPOIs =
+        allBuildingPOIs.where((poi) => poi.floor != 'Kat 2').toList();
 
     showModalBottomSheet(
       context: context,
@@ -476,6 +504,48 @@ class _Kat2PageState extends State<Kat2Page> with TickerProviderStateMixin {
     super.dispose();
   }
 
+  // <<< YENİ METOT >>>
+  Widget _buildVoiceGuideButton() {
+    // Duruma göre renk, metin ve ikon belirle
+    final bool isActive = _isVoiceGuideEnabled;
+    final Color buttonColor = isActive ? Colors.blueGrey : successGreen;
+    final String label =
+        isActive ? 'Sesli Rehberi Kapat' : 'Sesli Rehberi Aktif Et';
+    final IconData icon =
+        isActive ? Icons.voice_over_off : Icons.record_voice_over;
+
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.fromLTRB(16, 8, 16, 0), // Üstte boşluk
+      child: ElevatedButton.icon(
+        onPressed: () {
+          setState(() {
+            _isVoiceGuideEnabled = !_isVoiceGuideEnabled;
+          });
+          // Kullanıcıya geri bildirim ver
+          _showSnack(
+            isActive
+                ? 'Sesli rehber Kapatıldı.'
+                : 'Sesli rehber Aktif Edildi. (İşlev eklenecek)',
+          );
+        },
+        icon: Icon(icon, color: Colors.white),
+        label: Text(
+          label,
+          style: const TextStyle(fontWeight: FontWeight.w600),
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: buttonColor,
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -485,8 +555,10 @@ class _Kat2PageState extends State<Kat2Page> with TickerProviderStateMixin {
         child: Column(
           children: [
             _buildSearchSection(),
-            Expanded(child: _buildMapSection()),
+            Expanded(child: _buildMapSection()), // <<< METOT GÜNCELLENDİ
             if (_isListening) _buildListeningIndicator(),
+            // <<< YENİ BUTON EKLENDİ >>>
+            _buildVoiceGuideButton(),
             const StopScanButton(),
           ],
         ),
@@ -554,9 +626,7 @@ class _Kat2PageState extends State<Kat2Page> with TickerProviderStateMixin {
               ),
             ),
           ),
-
           const SizedBox(width: 8),
-
           _buildMicrophoneButton(),
         ],
       ),
@@ -606,6 +676,7 @@ class _Kat2PageState extends State<Kat2Page> with TickerProviderStateMixin {
     );
   }
 
+  // <<< TAMAMEN GÜNCELLENEN METOT >>>
   Widget _buildMapSection() {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
@@ -624,85 +695,76 @@ class _Kat2PageState extends State<Kat2Page> with TickerProviderStateMixin {
         borderRadius: BorderRadius.circular(20),
         child: Stack(
           children: [
-            Image.network(
-              kat2HaritaUrl,
+            CachedNetworkImage(
+              imageUrl: kat2HaritaUrl,
               fit: BoxFit.contain,
               width: double.infinity,
               height: double.infinity,
-              loadingBuilder: (context, child, loadingProgress) {
-                if (loadingProgress == null) return child;
-                return Container(
-                  color: Colors.grey.shade50,
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        SizedBox(
-                          width: 40,
-                          height: 40,
-                          child: CircularProgressIndicator(
-                            value: loadingProgress.expectedTotalBytes != null
-                                ? loadingProgress.cumulativeBytesLoaded /
-                                      loadingProgress.expectedTotalBytes!
-                                : null,
-                            color: primaryOrange,
-                            strokeWidth: 3,
-                          ),
+              placeholder: (context, url) => Container(
+                color: Colors.grey.shade50,
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        width: 40,
+                        height: 40,
+                        child: CircularProgressIndicator(
+                          color: primaryOrange,
+                          strokeWidth: 3,
                         ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Harita yükleniyor...',
-                          style: TextStyle(
-                            color: Colors.grey.shade600,
-                            fontSize: 14,
-                          ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Harita yükleniyor...',
+                        style: TextStyle(
+                          color: Colors.grey.shade600,
+                          fontSize: 14,
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                );
-              },
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  color: Colors.grey.shade50,
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.red.shade50,
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            Icons.map_outlined,
-                            color: Colors.red.shade400,
-                            size: 48,
-                          ),
+                ),
+              ),
+              errorWidget: (context, url, error) => Container(
+                color: Colors.grey.shade50,
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.red.shade50,
+                          shape: BoxShape.circle,
                         ),
-                        const SizedBox(height: 16),
-                        const Text(
-                          '2. Kat Haritası',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black87,
-                          ),
+                        child: Icon(
+                          Icons.map_outlined,
+                          color: Colors.red.shade400,
+                          size: 48,
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Harita yüklenemedi',
-                          style: TextStyle(
-                            color: Colors.grey.shade600,
-                            fontSize: 14,
-                          ),
+                      ),
+                      const SizedBox(height: 16),
+                      const Text(
+                        '2. Kat Haritası',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black87,
                         ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Harita yüklenemedi',
+                        style: TextStyle(
+                          color: Colors.grey.shade600,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
                   ),
-                );
-              },
+                ),
+              ),
             ),
 
             // Kat bilgisi overlay
@@ -740,6 +802,7 @@ class _Kat2PageState extends State<Kat2Page> with TickerProviderStateMixin {
       ),
     );
   }
+  // <<< GÜNCELLEME SONU >>>
 
   Widget _buildListeningIndicator() {
     return AnimatedBuilder(
