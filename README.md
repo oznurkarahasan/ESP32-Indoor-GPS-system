@@ -139,7 +139,9 @@ flutter build ios --release
 ## 📚 Dokümantasyon
 
 - **README.md** - Bu dosya (Genel proje bilgisi)
+- **IOS_SETUP.md** - 🍎 iOS kurulum ve yapılandırma rehberi
 - **AR_CAPABILITY_CHECK.md** - 🎯 AR yetenek kontrolü ve otomatik yönlendirme
+- **AR_VS_NORMAL_FLOW.md** - 🔄 AR ve Normal mod karşılaştırması
 - **BLUETOOTH_QUICK_GUIDE.md** - ⚡ Bluetooth yönetimi hızlı rehber (Yeni sayfa eklerken)
 - **BLUETOOTH_CHEATSHEET.md** - 📋 Bluetooth kopya kağıdı (Hızlı referans)
 - **BLUETOOTH_MANAGEMENT.md** - Detaylı Bluetooth tarama yönetimi

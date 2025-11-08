@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Flutter Application 1</string>
+	<string>NavIn</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -13,7 +13,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>flutter_application_1</string>
+	<string>NavIn</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -45,15 +45,57 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	
+	<!-- Background Modes - Bluetooth tarama için -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>bluetooth-central</string>
+		<string>location</string>
+	</array>
+	
+	<!-- Status Bar Ayarları -->
+	<key>UIStatusBarHidden</key>
+	<false/>
+	<key>UIViewControllerBasedStatusBarAppearance</key>
+	<false/>
+	
+	<!-- Kamera Özellikleri -->
+	<key>UIRequiredDeviceCapabilities</key>
+	<array>
+		<string>arm64</string>
+	</array>
+	<!-- Kamera İzni - AR Navigasyon için gerekli -->
 	<key>NSCameraUsageDescription</key>
-	<string>AR navigasyon için kamera erişimi gereklidir</string>
+	<string>NavIn, AR navigasyon özelliği için kamera erişimine ihtiyaç duyar. Gerçek dünya görüntüsü üzerine yön okları yerleştirerek size yol gösterir.</string>
+	
+	<!-- Mikrofon İzni - Sesli komutlar için gerekli -->
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Ses komutları için mikrofon erişimi gereklidir</string>
+	<string>NavIn, sesli komutlarla hedef aramanız için mikrofon erişimine ihtiyaç duyar. "Kütüphane" diyerek hedefinizi bulabilirsiniz.</string>
+	
+	<!-- Konum İzni - Bluetooth tarama için gerekli -->
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>İç mekan navigasyonu için konum erişimi gereklidir</string>
+	<string>NavIn, Bluetooth sinyalleri ile bulunduğunuz katı tespit etmek için konum erişimine ihtiyaç duyar. Konumunuz kaydedilmez.</string>
+	
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>NavIn, arka planda da Bluetooth sinyalleri ile kat tespiti yapabilmek için konum erişimine ihtiyaç duyar.</string>
+	
+	<!-- Bluetooth İzinleri - iOS 13+ için -->
 	<key>NSBluetoothAlwaysUsageDescription</key>
-	<string>Bluetooth sinyalleri ile konum tespiti için gereklidir</string>
+	<string>NavIn, ESP32 cihazlarından gelen Bluetooth sinyalleri ile bulunduğunuz katı tespit eder ve size yol gösterir.</string>
+	
 	<key>NSBluetoothPeripheralUsageDescription</key>
-	<string>Bluetooth cihazları ile iletişim için gereklidir</string>
+	<string>NavIn, Bluetooth Low Energy (BLE) cihazları ile iletişim kurarak iç mekan navigasyonu sağlar.</string>
+	
+	<!-- Motion & Fitness İzni - Sensörler için -->
+	<key>NSMotionUsageDescription</key>
+	<string>NavIn, AR navigasyon için cihazınızın hareket sensörlerini kullanır. Bu sayede yön okları cihazınızın hareketine göre güncellenir.</string>
+	
+	<!-- Photo Library İzni - Hedef fotoğrafları için (opsiyonel) -->
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>NavIn, hedef fotoğraflarını gösterebilmek için fotoğraf kütüphanesine erişim isteyebilir.</string>
+	
+	<!-- Speech Recognition İzni - Sesli komutlar için -->
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>NavIn, sesli komutlarınızı anlamak için konuşma tanıma özelliğini kullanır.</string>
 </dict>
 </plist>
