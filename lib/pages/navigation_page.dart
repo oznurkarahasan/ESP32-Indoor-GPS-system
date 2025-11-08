@@ -10,11 +10,15 @@ import '../widgets/modern_loading.dart';
 class NavigationPage extends StatefulWidget {
   final String startPOI;
   final POI endPOI;
+  final bool showVideoOnly;
+  final bool showPreviewOnly;
 
   const NavigationPage({
     super.key,
     required this.startPOI,
     required this.endPOI,
+    this.showVideoOnly = false,
+    this.showPreviewOnly = false,
   });
 
   @override
@@ -52,7 +56,10 @@ class _NavigationPageState extends State<NavigationPage>
 
   @override
   void dispose() {
-    BleRouter().start();
+    // BleRouter().start() KALDIRILDI
+    // Çünkü NavigationPage'den AR kameraya geri dönüldüğünde
+    // Bluetooth taraması başlamamalı
+    // Sadece AR kameradan kat sayfalarına dönüldüğünde başlamalı
     _controller.dispose();
     _progressController.dispose();
     super.dispose();
@@ -252,6 +259,39 @@ class _NavigationPageState extends State<NavigationPage>
   }
 
   Widget _buildBody() {
+    // Sadece video göster
+    if (widget.showVideoOnly) {
+      return SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildRouteInfoCard(),
+            const SizedBox(height: 20),
+            _buildVideoSection(),
+            const SizedBox(height: 20),
+            _buildControlButtons(),
+          ],
+        ),
+      );
+    }
+
+    // Sadece önizleme göster
+    if (widget.showPreviewOnly) {
+      return SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildRouteInfoCard(),
+            const SizedBox(height: 20),
+            _buildDestinationPreview(),
+          ],
+        ),
+      );
+    }
+
+    // Normal mod - her ikisini de göster
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(

@@ -7,7 +7,9 @@ import '../widgets/stop_scan_button.dart';
 import '../widgets/custom_appbar.dart';
 import '../widgets/modern_card.dart';
 import '../models/poi_data.dart';
+import 'ar_camera_page.dart';
 import 'navigation_page.dart';
+import '../services/ar_capability_service.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -209,18 +211,43 @@ class _ZeminPageState extends State<ZeminPage> with TickerProviderStateMixin {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
   }
 
-  void _startNavigation(String destinationPOI) {
+  void _startNavigation(String destinationPOI) async {
     try {
       final targetPOI = BuildingData.allPOIs.firstWhere(
         (poi) => poi.name == destinationPOI,
       );
 
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) =>
-              NavigationPage(startPOI: 'Zemin ZON', endPOI: targetPOI),
-        ),
-      );
+      // AR desteğini kontrol et
+      final arSupported = ArCapabilityService().isArSupported ?? false;
+
+      if (arSupported) {
+        // AR destekleniyor - AR kamera sayfasına git
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => ArCameraPage(
+              destination: targetPOI.name,
+              locationData: {
+                'startPOI': 'Zemin ZON',
+                'endPOI': targetPOI,
+                'targetPOI': targetPOI,
+              },
+            ),
+          ),
+        );
+      } else {
+        // AR desteklenmiyor - Direkt navigasyon sayfasına git
+        // Normal mod: Hem video rehber hem hedef önizleme gösterilir
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => NavigationPage(
+              startPOI: 'Zemin ZON',
+              endPOI: targetPOI,
+              showVideoOnly: false,
+              showPreviewOnly: false,
+            ),
+          ),
+        );
+      }
     } catch (e) {
       _showSnack('Hata: Hedef ($destinationPOI) veri setinde bulunamadı.');
     }

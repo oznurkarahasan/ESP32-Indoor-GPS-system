@@ -3,8 +3,14 @@ import 'pages/ble_scanner_page.dart';
 import 'pages/zemin_page.dart';
 import 'pages/kat1_page.dart';
 import 'pages/kat2_page.dart';
+import 'services/ar_capability_service.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // AR desteğini kontrol et
+  await ArCapabilityService().checkArSupport();
+  
   runApp(const MyApp());
 }
 

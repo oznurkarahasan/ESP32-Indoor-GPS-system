@@ -7,7 +7,9 @@ import '../widgets/stop_scan_button.dart';
 import '../widgets/custom_appbar.dart';
 import '../widgets/modern_card.dart';
 import '../models/poi_data.dart';
+import 'ar_camera_page.dart';
 import 'navigation_page.dart';
+import '../services/ar_capability_service.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -210,20 +212,43 @@ class _Kat2PageState extends State<Kat2Page> with TickerProviderStateMixin {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
   }
 
-  void _startNavigation(String destinationPOI) {
+  void _startNavigation(String destinationPOI) async {
     try {
       final targetPOI = BuildingData.allPOIs.firstWhere(
         (poi) => poi.name == destinationPOI,
       );
 
-      // Kat 2 için başlangıç POI adını doğrulayın
-      // 'LYEC Giriş (Kat 2)' veya 'Kat 2 ZON'
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) =>
-              NavigationPage(startPOI: 'LYEC Giriş (Kat 2)', endPOI: targetPOI),
-        ),
-      );
+      // AR desteğini kontrol et
+      final arSupported = ArCapabilityService().isArSupported ?? false;
+
+      if (arSupported) {
+        // AR destekleniyor - AR kamera sayfasına git
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => ArCameraPage(
+              destination: targetPOI.name,
+              locationData: {
+                'startPOI': 'LYEC Giriş (Kat 2)',
+                'endPOI': targetPOI,
+                'targetPOI': targetPOI,
+              },
+            ),
+          ),
+        );
+      } else {
+        // AR desteklenmiyor - Direkt navigasyon sayfasına git
+        // Normal mod: Hem video rehber hem hedef önizleme gösterilir
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => NavigationPage(
+              startPOI: 'LYEC Giriş (Kat 2)',
+              endPOI: targetPOI,
+              showVideoOnly: false,
+              showPreviewOnly: false,
+            ),
+          ),
+        );
+      }
     } catch (e) {
       _showSnack('Hata: Hedef ($destinationPOI) veri setinde bulunamadı.');
     }

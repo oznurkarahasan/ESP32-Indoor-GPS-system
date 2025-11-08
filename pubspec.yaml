@@ -24,10 +24,14 @@ dependencies:
   shimmer: ^3.0.0
   lottie: ^3.1.0
 
-  # <<< YENİ EKLENEN ÖNBELLEK PAKETLERİ >>>
+  # Cache
   cached_network_image: ^3.3.1
   flutter_cache_manager: ^3.3.2
-  # <<< EKLENTİLER SONU >>>
+  
+  # AR (Augmented Reality) - Basit matematik için
+  vector_math: ^2.1.4
+  sensors_plus: ^3.0.0
+  camera: ^0.10.5+5
 
 dev_dependencies:
   flutter_test:

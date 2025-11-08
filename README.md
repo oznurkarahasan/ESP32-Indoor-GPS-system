@@ -1,293 +1,236 @@
-# NavBle - Bluetooth Tabanlı İç Mekan Navigasyon Uygulaması
+# ESP32 Indoor GPS System with AR Navigation
 
-## 📱 Proje Hakkında
+Flutter tabanlı iç mekan navigasyon sistemi. Bluetooth Low Energy (BLE) sinyalleri kullanarak konum tespiti yapar ve AR (Augmented Reality) teknolojisi ile kullanıcıya yol gösterir.
 
-NavBle, Bluetooth Low Energy (BLE) teknolojisini kullanarak bina içi navigasyon sağlayan bir Flutter uygulamasıdır. Uygulama, kullanıcıların bina içindeki farklı katlarda bulunan noktalara (POI - Point of Interest) kolayca ulaşmasını sağlar. Sesli komut desteği ve video tabanlı navigasyon özellikleri ile kullanıcı deneyimini geliştirir.
+## 🚀 Özellikler
 
-## ✨ Özellikler
+### 🔵 Bluetooth Navigasyon
+- ESP32 cihazlarından BLE sinyalleri ile konum tespiti
+- Otomatik kat algılama (Zemin, Kat 1, Kat 2)
+- Gerçek zamanlı sinyal gücü takibi
+- Akıllı navigasyon algoritması
+- Otomatik tarama yönetimi (pil tasarrufu için)
 
-- **Bluetooth Tabanlı Konum Tespiti**: BLE sinyallerini kullanarak kullanıcının bulunduğu katı otomatik tespit eder
-- **Çok Katlı Bina Desteği**: Zemin, 1. Kat ve 2. Kat için ayrı harita görünümleri
-- **Sesli Komut Desteği**: Mikrofon kullanarak hedef noktaya sesli komutla navigasyon
-- **Video Tabanlı Navigasyon**: Her rota için özel hazırlanmış navigasyon videoları
-- **Gerçek Zamanlı Arama**: Bina içindeki tüm noktaları arama ve filtreleme
-- **Otomatik Kat Değiştirme**: BLE sinyallerine göre otomatik kat geçişi
-- **Modern UI/UX**: Material Design prensiplerine uygun kullanıcı arayüzü
+### 🎯 AR (Augmented Reality) Navigasyon
+- **Otomatik AR Yetenek Kontrolü**: Cihaz desteğine göre otomatik yönlendirme
+- **Kamera Tabanlı AR**: Gerçek dünya görüntüsü üzerine yön okları
+- Gerçek zamanlı 3D AR yön göstergeleri
+- Animasyonlu ok işaretleri ile yol tarifi
+- Cihaz sensörleri entegrasyonu (Accelerometer, Gyroscope, Magnetometer)
+- Pusula desteği ile yön bulma
+- Mesafe ve hız göstergeleri
+- İnteraktif kontroller (ok ekle/çıkar, ilerle, sıfırla)
+- **Fallback Desteği**: AR desteklenmeyen cihazlarda video rehber
 
-## 🏗️ Mimari Yapı
+### 🎨 Modern UI/UX
+- Material Design 3
+- Gradient ve animasyonlar
+- Shimmer efektleri
+- Lottie animasyonları
+- Responsive tasarım
 
-```
-lib/
-├── main.dart                 # Ana uygulama giriş noktası
-├── models/
-│   └── poi_data.dart        # POI ve navigasyon veri modelleri
-├── pages/
-│   ├── ble_scanner_page.dart # BLE tarama ana sayfası
-│   ├── zemin_page.dart      # Zemin kat harita sayfası
-│   ├── kat1_page.dart       # 1. kat harita sayfası
-│   ├── kat2_page.dart       # 2. kat harita sayfası
-│   └── navigation_page.dart # Navigasyon sayfası
-├── services/
-│   └── ble_router.dart      # BLE yönetim servisi
-├── views/
-│   ├── ble_scanner_view.dart # BLE tarama görünümü
-│   ├── floor_map_view.dart   # Kat harita görünümü
-│   └── navigation_view.dart  # Navigasyon görünümü
-└── widgets/
-    ├── custom_appbar.dart    # Özel uygulama çubuğu
-    ├── device_title.dart     # Cihaz başlık widget'ı
-    ├── stop_scan_button.dart # Tarama durdurma butonu
-    └── voice_search_button.dart # Sesli arama butonu
-```
+## 📱 Ekran Görüntüleri
 
-## 🚀 Kurulum
+- Ana Sayfa: BLE tarayıcı
+- AR Navigasyon: Artırılmış gerçeklik yol tarifi
+- Kat Sayfaları: Zemin, Kat 1, Kat 2
 
-### Gereksinimler
+## 🛠️ Teknolojiler
 
-- **Flutter SDK**: 3.9.2 veya üzeri
-- **Dart SDK**: 3.9.2 veya üzeri
-- **Android Studio** veya **VS Code** (Flutter eklentisi ile)
-- **Git**
+### Flutter Paketleri
+- `flutter_blue_plus`: BLE iletişimi
+- `permission_handler`: İzin yönetimi
+- `sensors_plus`: Cihaz sensörleri (AR için)
+- `vector_math`: 3D matematik işlemleri
+- `flutter_animate`: Animasyonlar
+- `shimmer`: Yükleme efektleri
+- `lottie`: Vektör animasyonları
+- `video_player`: Video oynatma
+- `speech_to_text`: Ses tanıma
 
-### Adım 1: Flutter Kurulumu
+### Donanım
+- ESP32 geliştirme kartları
+- BLE beacon'lar
+- Bluetooth 4.0+ destekli mobil cihazlar
 
-1. [Flutter resmi sitesinden](https://flutter.dev/docs/get-started/install) Flutter SDK'yı indirin
-2. Flutter'ı PATH'e ekleyin
-3. Kurulumu doğrulayın:
-   ```bash
-   flutter doctor
-   ```
+## 📋 Gereksinimler
 
-### Adım 2: Projeyi Klonlama
+- Flutter SDK: 3.7.12
+- Dart SDK: 3.0.6
+- Java JDK: 17 (Android için)
+- Android SDK: API 21+ (Android 5.0+)
+- iOS: 11.0+ (iOS geliştirme için)
 
+## 🔧 Kurulum
+
+### 1. Projeyi Klonlayın
 ```bash
-git clone <repository-url>
-cd deneme1/flutter_application_1
+git clone https://github.com/yourusername/ESP32-Indoor-GPS-system.git
+cd ESP32-Indoor-GPS-system
 ```
 
-### Adım 3: Bağımlılıkları Yükleme
-
+### 2. Bağımlılıkları Yükleyin
 ```bash
 flutter pub get
 ```
 
-### Adım 4: Platform Özel Kurulumlar
-
-#### Android Kurulumu
-
-1. **Android Studio**'yu açın
-2. **SDK Manager**'dan gerekli Android SDK'ları yükleyin
-3. **Android Virtual Device (AVD)** oluşturun veya fiziksel cihaz bağlayın
-4. USB Debugging'i etkinleştirin
-
-#### iOS Kurulumu (macOS gerekli)
-
-1. **Xcode**'u App Store'dan indirin
-2. **CocoaPods**'u yükleyin:
-   ```bash
-   sudo gem install cocoapods
-   ```
-3. iOS bağımlılıklarını yükleyin:
-   ```bash
-   cd ios && pod install && cd ..
-   ```
-
-### Adım 5: Uygulamayı Çalıştırma
-
-#### Android'de Çalıştırma
-
+### 3. Flutter Doctor Kontrolü
 ```bash
+flutter doctor
+```
+
+### 4. Uygulamayı Çalıştırın
+```bash
+# Android
 flutter run
-```
 
-#### iOS'ta Çalıştırma (macOS gerekli)
-
-```bash
+# iOS (macOS gerekli)
 flutter run -d ios
+
+# Web
+flutter run -d chrome
 ```
 
-#### Web'de Çalıştırma
+## 🏗️ Build
 
+### Android APK
 ```bash
-flutter run -d web
+flutter build apk --release
 ```
 
-## 📱 Kullanım
-
-### 1. BLE Tarama
-
-- Uygulama açıldığında otomatik olarak BLE tarama başlar
-- "Taramayı Başlat" butonuna basarak manuel tarama başlatabilirsiniz
-- Uygulama, "Zemin", "Kat 1", "Kat 2" isimli BLE cihazlarını arar
-
-### 2. Kat Değiştirme
-
-- BLE sinyallerine göre otomatik olarak kat değişir
-- Manuel olarak farklı katlara geçiş yapabilirsiniz
-
-### 3. Hedef Arama
-
-- Arama çubuğuna tıklayarak tüm bina noktalarını görüntüleyin
-- İstediğiniz hedefe tıklayarak navigasyonu başlatın
-
-### 4. Sesli Komut
-
-- Mikrofon butonuna basarak sesli komut modunu aktifleştirin
-- Hedef noktanın adını söyleyerek navigasyonu başlatın
-- Örnek: "Danışma Masası", "Bekleme Salonu", "WC"
-
-### 5. Navigasyon
-
-- Seçilen hedef için video tabanlı navigasyon başlar
-- Video, hedefe giden yolu adım adım gösterir
-
-## 🔧 Geliştirme
-
-### Proje Yapısı
-
-- **MVC Pattern**: Model-View-Controller mimarisi kullanılır
-- **Service Layer**: BLE yönetimi için ayrı servis katmanı
-- **Widget Composition**: Yeniden kullanılabilir widget'lar
-- **State Management**: Flutter'ın built-in state yönetimi
-
-### Yeni POI Ekleme
-
-`lib/models/poi_data.dart` dosyasında `BuildingData.allPOIs` listesine yeni POI ekleyin:
-
-```dart
-POI(
-  name: 'Yeni Nokta',
-  key: 'yeniNokta',
-  floor: 'Zemin',
-  imageUrl: 'https://example.com/image.jpg',
-),
+### iOS
+```bash
+flutter build ios --release
 ```
 
-### Yeni Rota Ekleme
+## 🎮 Kullanım
 
-`lib/models/poi_data.dart` dosyasında `BuildingData.allRoutes` listesine yeni rota ekleyin:
+### BLE Navigasyon
+1. Uygulamayı açın
+2. "Taramayı Başlat" butonuna tıklayın
+3. Bluetooth izinlerini verin
+4. Sistem otomatik olarak bulunduğunuz katı algılayacak
+5. Kat sayfasında konumunuzu göreceksiniz
 
-```dart
-NavVideo(
-  startPOI: 'Başlangıç Noktası',
-  endPOI: 'Bitiş Noktası',
-  url: 'https://example.com/video.mp4',
-  name: 'rota_adi',
-),
+### AR Kamera Navigasyon (AR Desteklenen Cihazlar)
+1. Kat sayfalarında (Zemin, Kat 1, Kat 2) gitmek istediğiniz yeri seçin
+2. Otomatik olarak AR Kamera sayfası açılır
+3. Kamera ve sensör izinlerini verin
+4. Gerçek dünya görüntüsü üzerine AR okları görün
+5. Üst tarafta bilgi kartında gösterilir:
+   - **Yön Talimatı**: Hangi yöne doğru ilerleyeceğiniz
+   - **Hedef**: Gitmek istediğiniz yer
+   - **Kat**: Hedefin hangi katta olduğu
+6. Alt tarafta 2 büyük buton görünür:
+   - **Video Rehber**: Hedefe giden yolu video ile gösterir
+   - **Hedef Önizleme**: Gideceğiniz yerin fotoğrafını gösterir
+7. Cihazınızı hareket ettirerek AR efektlerini görün
+8. Sağ üst köşeden kapat butonu ile çıkabilirsiniz
+
+### Video Rehber Navigasyon (AR Desteklenmeyen Cihazlar)
+1. Kat sayfalarında (Zemin, Kat 1, Kat 2) gitmek istediğiniz yeri seçin
+2. Otomatik olarak Navigasyon sayfası açılır
+3. Sayfada hem video rehber hem hedef önizleme gösterilir:
+   - **Video Rehber**: Hedefe giden yolu video ile gösterir
+   - **Hedef Önizleme**: Gideceğiniz yerin fotoğrafını gösterir
+4. Video kontrolleri ile videoyu oynatabilirsiniz
+5. Hedefe ulaştığınızda başarı mesajı görürsünüz
+
+## 📚 Dokümantasyon
+
+- **README.md** - Bu dosya (Genel proje bilgisi)
+- **AR_CAPABILITY_CHECK.md** - 🎯 AR yetenek kontrolü ve otomatik yönlendirme
+- **BLUETOOTH_QUICK_GUIDE.md** - ⚡ Bluetooth yönetimi hızlı rehber (Yeni sayfa eklerken)
+- **BLUETOOTH_CHEATSHEET.md** - 📋 Bluetooth kopya kağıdı (Hızlı referans)
+- **BLUETOOTH_MANAGEMENT.md** - Detaylı Bluetooth tarama yönetimi
+- **NAVIGATION_FLOW.md** - Sayfa geçişleri ve akış senaryoları
+- **AR_FEATURES.md** - AR özellikleri ve kullanımı
+- **PROJECT_STRUCTURE.md** - Proje yapısı ve dosya açıklamaları
+- **requirements.txt** - Sistem gereksinimleri
+
+## 📁 Proje Yapısı
+
 ```
-
-### Yeni Kat Ekleme
-
-1. Yeni kat sayfası oluşturun (`kat3_page.dart`)
-2. `main.dart`'ta route ekleyin
-3. `ble_router.dart`'ta kat adını `_allowedNames`'e ekleyin
-4. `ble_scanner_page.dart`'ta `_routeForName` metodunu güncelleyin
-
-## 📦 Bağımlılıklar
-
-### Ana Bağımlılıklar
-
-- **flutter_blue_plus**: ^2.0.0 - Bluetooth Low Energy desteği
-- **permission_handler**: ^12.0.1 - İzin yönetimi
-- **video_player**: ^2.10.0 - Video oynatma
-- **speech_to_text**: ^7.3.0 - Ses tanıma
-
-### Geliştirme Bağımlılıkları
-
-- **flutter_test**: Test framework'ü
-- **flutter_lints**: ^5.0.0 - Kod kalitesi kontrolü
+lib/
+├── main.dart                 # Ana uygulama
+├── pages/                    # Sayfa widget'ları
+│   ├── ble_scanner_page.dart
+│   ├── ar_camera_page.dart
+│   ├── navigation_page.dart
+│   ├── zemin_page.dart
+│   ├── kat1_page.dart
+│   └── kat2_page.dart
+├── services/                 # Servis katmanı
+│   └── ble_router.dart
+├── views/                    # Görünüm bileşenleri
+│   └── ble_scanner_view.dart
+├── widgets/                  # Yeniden kullanılabilir widget'lar
+│   ├── custom_appbar.dart
+│   ├── device_title.dart
+│   └── stop_scan_button.dart
+└── models/                   # Veri modelleri
+```
 
 ## 🔐 İzinler
 
-### Android (android/app/src/main/AndroidManifest.xml)
-
+### Android (AndroidManifest.xml)
 ```xml
-<uses-permission android:name="android.permission.BLUETOOTH" />
-<uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
-<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-<uses-permission android:name="android.permission.RECORD_AUDIO" />
-<uses-permission android:name="android.permission.INTERNET" />
+<uses-permission android:name="android.permission.BLUETOOTH"/>
+<uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
+<uses-permission android:name="android.permission.BLUETOOTH_SCAN"/>
+<uses-permission android:name="android.permission.BLUETOOTH_CONNECT"/>
+<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+<uses-permission android:name="android.permission.CAMERA"/>
+<uses-permission android:name="android.permission.RECORD_AUDIO"/>
 ```
 
-### iOS (ios/Runner/Info.plist)
-
+### iOS (Info.plist)
 ```xml
 <key>NSBluetoothAlwaysUsageDescription</key>
-<string>Bu uygulama Bluetooth kullanarak konum tespiti yapar</string>
-<key>NSMicrophoneUsageDescription</key>
-<string>Bu uygulama sesli komutlar için mikrofon kullanır</string>
+<string>Bluetooth ile konum tespiti için gerekli</string>
 <key>NSLocationWhenInUseUsageDescription</key>
-<string>Bu uygulama konum tespiti için konum bilgisi kullanır</string>
-```
-
-## 🐛 Sorun Giderme
-
-### Yaygın Sorunlar
-
-1. **BLE Cihazları Görünmüyor**
-
-   - Bluetooth'un açık olduğundan emin olun
-   - Konum izinlerini kontrol edin
-   - Cihazı yeniden başlatın
-
-2. **Sesli Komut Çalışmıyor**
-
-   - Mikrofon iznini kontrol edin
-   - İnternet bağlantısını kontrol edin
-   - Cihazın mikrofonunun çalıştığından emin olun
-
-3. **Video Oynatılamıyor**
-   - İnternet bağlantısını kontrol edin
-   - Video URL'lerinin erişilebilir olduğundan emin olun
-
-### Debug Modu
-
-```bash
-flutter run --debug
-```
-
-### Log Görüntüleme
-
-```bash
-flutter logs
-```
-
-## 📊 Performans
-
-### Optimizasyon Önerileri
-
-- BLE tarama sıklığını ihtiyaca göre ayarlayın
-- Video dosyalarını optimize edin
-- Gereksiz widget rebuild'lerini önleyin
-- Memory leak'leri kontrol edin
-
-### Test Etme
-
-```bash
-# Unit testler
-flutter test
-
-# Integration testler
-flutter drive --target=test_driver/app.dart
+<string>İç mekan navigasyonu için gerekli</string>
+<key>NSCameraUsageDescription</key>
+<string>AR navigasyon için gerekli</string>
+<key>NSMicrophoneUsageDescription</key>
+<string>Ses komutları için gerekli</string>
 ```
 
 ## 🤝 Katkıda Bulunma
 
 1. Fork yapın
 2. Feature branch oluşturun (`git checkout -b feature/amazing-feature`)
-3. Commit yapın (`git commit -m 'Add amazing feature'`)
-4. Push yapın (`git push origin feature/amazing-feature`)
-5. Pull Request oluşturun
+3. Değişikliklerinizi commit edin (`git commit -m 'Add amazing feature'`)
+4. Branch'inizi push edin (`git push origin feature/amazing-feature`)
+5. Pull Request açın
 
-## 📄 Lisans
+## 📝 Lisans
 
-Bu proje MIT lisansı altında lisanslanmıştır. Detaylar için `LICENSE` dosyasına bakın.
+Bu proje MIT lisansı altında lisanslanmıştır.
+
+## 👥 Geliştirici
+
+- GitHub: [@yourusername](https://github.com/yourusername)
+
+## 🐛 Bilinen Sorunlar
+
+- AR özelliği bazı eski cihazlarda performans sorunları yaşayabilir
+- iOS'ta ARKit desteği için iOS 11+ gereklidir
+- Bluetooth izinleri Android 12+ için özel yapılandırma gerektirir
+
+## 🔮 Gelecek Planlar
+
+- [ ] Gerçek ARCore/ARKit entegrasyonu
+- [ ] 3D bina modelleri
+- [ ] Çoklu dil desteği
+- [ ] Offline harita desteği
+- [ ] Ses komutları ile navigasyon
+- [ ] Sosyal özellikler (konum paylaşımı)
 
 ## 📞 İletişim
 
-- **Proje Sahibi**: [Öznur Karahasan]
-- **E-posta**: [oznurkarahasann@gmail.com]
-- **GitHub**: [github.com/oznurkarahasan]
+Sorularınız için issue açabilir veya email gönderebilirsiniz.
 
-**Not**: Bu uygulama geliştirme aşamasındadır. Üretim ortamında kullanmadan önce kapsamlı testler yapın.
+---
+
+⭐ Bu projeyi beğendiyseniz yıldız vermeyi unutmayın!

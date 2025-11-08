@@ -9,6 +9,10 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <!-- For future voice search support -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <!-- Camera for AR Navigation -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
 
     <!-- Android 12+ için BLE izinleri -->
     <uses-permission

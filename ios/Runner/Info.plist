@@ -45,5 +45,15 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>AR navigasyon için kamera erişimi gereklidir</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Ses komutları için mikrofon erişimi gereklidir</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>İç mekan navigasyonu için konum erişimi gereklidir</string>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>Bluetooth sinyalleri ile konum tespiti için gereklidir</string>
+	<key>NSBluetoothPeripheralUsageDescription</key>
+	<string>Bluetooth cihazları ile iletişim için gereklidir</string>
 </dict>
 </plist>
