@@ -28,18 +28,12 @@ class _ArCameraPageState extends State<ArCameraPage>
   String _errorMessage = '';
 
   late AnimationController _arrowController;
-  StreamSubscription<AccelerometerEvent>? _accelerometerSubscription;
   StreamSubscription<GyroscopeEvent>? _gyroscopeSubscription;
-  StreamSubscription<MagnetometerEvent>? _magnetometerSubscription;
 
-  double _distance = 25.0;
-  String _instruction = "İleri doğru ilerleyin";
-  int _arrowCount = 3;
-  double _deviceTilt = 0.0;
+  final String _instruction = "İleri doğru ilerleyin";
+  final int _arrowCount = 3;
   double _deviceRotation = 0.0;
-  double _compass = 0.0;
-  bool _sensorsActive = true;
-  bool _showInfo = true;
+  final bool _sensorsActive = true;
 
   @override
   void initState() {
@@ -92,30 +86,11 @@ class _ArCameraPageState extends State<ArCameraPage>
   }
 
   void _initializeSensors() {
-    // Accelerometer - cihaz eğimi
-    _accelerometerSubscription = accelerometerEvents.listen((event) {
-      if (mounted && _sensorsActive) {
-        setState(() {
-          _deviceTilt = event.y / 10;
-        });
-      }
-    });
-
     // Gyroscope - cihaz dönüşü
     _gyroscopeSubscription = gyroscopeEvents.listen((event) {
       if (mounted && _sensorsActive) {
         setState(() {
           _deviceRotation = event.z;
-        });
-      }
-    });
-
-    // Magnetometer - pusula
-    _magnetometerSubscription = magnetometerEvents.listen((event) {
-      if (mounted && _sensorsActive) {
-        setState(() {
-          double heading = math.atan2(event.y, event.x);
-          _compass = heading * (180 / math.pi);
         });
       }
     });
@@ -144,36 +119,8 @@ class _ArCameraPageState extends State<ArCameraPage>
     WidgetsBinding.instance.removeObserver(this);
     _cameraController?.dispose();
     _arrowController.dispose();
-    _accelerometerSubscription?.cancel();
     _gyroscopeSubscription?.cancel();
-    _magnetometerSubscription?.cancel();
     super.dispose();
-  }
-
-  void _simulateMovement() {
-    setState(() {
-      if (_distance > 0) {
-        _distance -= 2.5;
-        if (_distance <= 0) {
-          _distance = 0;
-          _instruction = "🎉 Hedefe ulaştınız!";
-        } else if (_distance < 5) {
-          _instruction = "⚡ Hedefe çok yakınsınız!";
-        } else if (_distance < 10) {
-          _instruction = "➡️ Az kaldı, devam edin";
-        } else {
-          _instruction = "🧭 İleri doğru ilerleyin";
-        }
-      }
-    });
-  }
-
-  void _resetNavigation() {
-    setState(() {
-      _distance = 25.0;
-      _instruction = "İleri doğru ilerleyin";
-      _arrowCount = 3;
-    });
   }
 
   @override
@@ -251,7 +198,7 @@ class _ArCameraPageState extends State<ArCameraPage>
                       child: Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.orange.withOpacity(0.3),
+                          color: Colors.orange.withValues(alpha: 0.3),
                           shape: BoxShape.circle,
                           border: Border.all(
                             color: Colors.orange,
@@ -259,7 +206,7 @@ class _ArCameraPageState extends State<ArCameraPage>
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.orange.withOpacity(0.5),
+                              color: Colors.orange.withValues(alpha: 0.5),
                               blurRadius: 20,
                               spreadRadius: 5,
                             ),
@@ -268,7 +215,7 @@ class _ArCameraPageState extends State<ArCameraPage>
                         child: Icon(
                           Icons.arrow_upward,
                           size: 50 - (i * 8),
-                          color: Colors.white.withOpacity(opacity),
+                          color: Colors.white.withValues(alpha: opacity),
                         ),
                       ),
                     ),
@@ -295,7 +242,7 @@ class _ArCameraPageState extends State<ArCameraPage>
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
         ),
-        color: Colors.black.withOpacity(0.8),
+        color: Colors.black.withValues(alpha: 0.8),
         child: Padding(
           padding: const EdgeInsets.all(20.0),
           child: Column(
@@ -307,7 +254,7 @@ class _ArCameraPageState extends State<ArCameraPage>
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: Colors.orange.withOpacity(0.3),
+                      color: Colors.orange.withValues(alpha: 0.3),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: const Icon(
@@ -383,10 +330,10 @@ class _ArCameraPageState extends State<ArCameraPage>
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.blue.withOpacity(0.3),
+                      color: Colors.blue.withValues(alpha: 0.3),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: Colors.blue.withOpacity(0.5),
+                        color: Colors.blue.withValues(alpha: 0.5),
                       ),
                     ),
                     child: Text(
@@ -415,11 +362,11 @@ class _ArCameraPageState extends State<ArCameraPage>
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.8),
+          color: Colors.black.withValues(alpha: 0.8),
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.3),
+              color: Colors.black.withValues(alpha: 0.3),
               blurRadius: 10,
               offset: const Offset(0, 5),
             ),
@@ -508,94 +455,9 @@ class _ArCameraPageState extends State<ArCameraPage>
         mini: true,
         heroTag: 'close',
         onPressed: () => Navigator.pop(context),
-        backgroundColor: Colors.red.withOpacity(0.9),
+        backgroundColor: Colors.red.withValues(alpha: 0.9),
         child: const Icon(Icons.close, color: Colors.white),
       ),
-    );
-  }
-
-  Widget _buildControlButton({
-    required IconData icon,
-    required String label,
-    required VoidCallback? onPressed,
-    required Color color,
-  }) {
-    return Column(
-      children: [
-        Container(
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: color.withOpacity(0.3),
-                blurRadius: 8,
-                spreadRadius: 2,
-              ),
-            ],
-          ),
-          child: FloatingActionButton(
-            mini: true,
-            heroTag: label,
-            onPressed: onPressed,
-            backgroundColor: color,
-            child: Icon(icon),
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 12,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildInfoChip({
-    required IconData icon,
-    required String label,
-    required Color color,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.5)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 16, color: color),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 12,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSensorIndicator(IconData icon, String label, Color color) {
-    return Column(
-      children: [
-        Icon(icon, color: color, size: 24),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 10,
-            color: Colors.white,
-          ),
-        ),
-      ],
     );
   }
 

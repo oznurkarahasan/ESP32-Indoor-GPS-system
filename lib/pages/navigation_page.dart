@@ -43,7 +43,6 @@ class _NavigationPageState extends State<NavigationPage>
 
   // Animasyon kontrolcüleri
   late AnimationController _progressController;
-  late Animation<double> _progressAnimation;
 
   @override
   void initState() {
@@ -69,10 +68,6 @@ class _NavigationPageState extends State<NavigationPage>
     _progressController = AnimationController(
       duration: const Duration(seconds: 2),
       vsync: this,
-    );
-
-    _progressAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _progressController, curve: Curves.easeInOut),
     );
   }
 
