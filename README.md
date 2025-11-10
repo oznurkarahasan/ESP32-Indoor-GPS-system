@@ -235,4 +235,4 @@ Sorularınız için issue açabilir veya email gönderebilirsiniz.
 
 ---
 
-⭐ Bu projeyi beğendiyseniz yıldız vermeyi unutmayın!
+⭐ Bu projeyi beğendiyseniz yıldız vermeyi unutmayın!!
