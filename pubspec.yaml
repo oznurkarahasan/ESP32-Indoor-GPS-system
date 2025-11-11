@@ -10,6 +10,9 @@ dependencies:
   flutter:
     sdk: flutter
 
+  flutter_dotenv: ^6.0.0 
+
+  google_generative_ai: ^0.4.7
   # UI ve İkonlar
   cupertino_icons: ^1.0.8
   
@@ -40,3 +43,6 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+
+  assets:
+    - .env
