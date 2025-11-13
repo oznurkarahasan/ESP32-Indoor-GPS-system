@@ -84,19 +84,20 @@ class _ZeminPageState extends State<ZeminPage> with TickerProviderStateMixin {
       CurvedAnimation(parent: _listeningController, curve: Curves.elasticOut),
     );
 
-    _micColorAnimation = ColorTween(begin: primaryOrange, end: micActiveColor)
-        .animate(
-          CurvedAnimation(
-            parent: _listeningController,
-            curve: Curves.easeInOut,
-          ),
-        );
+    _micColorAnimation =
+        ColorTween(begin: primaryOrange, end: micActiveColor).animate(
+      CurvedAnimation(
+        parent: _listeningController,
+        curve: Curves.easeInOut,
+      ),
+    );
   }
 
   Future<void> _initializeSpeechRecognition() async {
-    var status = await Permission.microphone.request();
+    var micStatus = await Permission.microphone.request();
+    var speechStatus = await Permission.speech.request();
 
-    if (status.isGranted) {
+    if (micStatus.isGranted && speechStatus.isGranted) {
       bool available = await _speechToText.initialize(
         onError: (e) => debugPrint('STT Error: ${e.errorMsg}'),
       );
@@ -627,17 +628,16 @@ class _ZeminPageState extends State<ZeminPage> with TickerProviderStateMixin {
                       child: Text(
                         _isListening
                             ? (_lastWords.isEmpty
-                                  ? 'Dinleniyor...'
-                                  : _lastWords)
+                                ? 'Dinleniyor...'
+                                : _lastWords)
                             : 'Nereye gitmek istiyorsunuz?',
                         style: TextStyle(
                           fontSize: 16,
                           color: _isListening
                               ? micActiveColor
                               : Colors.grey.shade600,
-                          fontWeight: _isListening
-                              ? FontWeight.w600
-                              : FontWeight.w500,
+                          fontWeight:
+                              _isListening ? FontWeight.w600 : FontWeight.w500,
                         ),
                       ),
                     ),

@@ -84,21 +84,21 @@ class _Kat1PageState extends State<Kat1Page> with TickerProviderStateMixin {
       CurvedAnimation(parent: _listeningController, curve: Curves.elasticOut),
     );
 
-    _micColorAnimation = ColorTween(begin: primaryOrange, end: micActiveColor)
-        .animate(
-          CurvedAnimation(
-            parent: _listeningController,
-            curve: Curves.easeInOut,
-          ),
-        );
+    _micColorAnimation =
+        ColorTween(begin: primaryOrange, end: micActiveColor).animate(
+      CurvedAnimation(
+        parent: _listeningController,
+        curve: Curves.easeInOut,
+      ),
+    );
   }
 
   Future<void> _initializeSpeechRecognition() async {
     try {
-      var status = await Permission.microphone.request();
-      if (!mounted) return;
+      var micStatus = await Permission.microphone.request();
+      var speechStatus = await Permission.speech.request();
 
-      if (status.isGranted) {
+      if (micStatus.isGranted && speechStatus.isGranted) {
         bool available = await _speechToText.initialize(
           onError: (error) {
             debugPrint('STT Error: ${error.errorMsg}');
@@ -119,11 +119,12 @@ class _Kat1PageState extends State<Kat1Page> with TickerProviderStateMixin {
             );
           }
         });
-      } else if (status.isDenied) {
+      } else if (micStatus.isDenied && speechStatus.isDenied) {
         _showSnack(
           'Sesli komut için mikrofon izni reddedildi. Ayarlardan izin vermeniz gerekiyor.',
         );
-      } else if (status.isPermanentlyDenied) {
+      } else if (micStatus.isPermanentlyDenied &&
+          speechStatus.isPermanentlyDenied) {
         _showSnack(
           'Mikrofon izni kalıcı olarak reddedildi. Lütfen cihaz ayarlarından manuel olarak izin verin.',
         );
@@ -207,10 +208,10 @@ class _Kat1PageState extends State<Kat1Page> with TickerProviderStateMixin {
         // Kriter 3: Takma adlardan (aliases) BİRİ eşleşiyor mu?
         final bool aliasMatch = poi.aliases.any((alias) {
           final String lowerAlias = alias.toLowerCase();
-          
+
           if (lowerCommand.contains(lowerAlias)) return true;
           if (lowerAlias.contains(lowerCommand)) return true;
-          
+
           return false;
         });
 
@@ -280,12 +281,10 @@ class _Kat1PageState extends State<Kat1Page> with TickerProviderStateMixin {
 
   void _openLocationSearch() {
     final allBuildingPOIs = BuildingData.allPOIs;
-    final kat1POIs = allBuildingPOIs
-        .where((poi) => poi.floor == 'Kat 1')
-        .toList();
-    final otherPOIs = allBuildingPOIs
-        .where((poi) => poi.floor != 'Kat 1')
-        .toList();
+    final kat1POIs =
+        allBuildingPOIs.where((poi) => poi.floor == 'Kat 1').toList();
+    final otherPOIs =
+        allBuildingPOIs.where((poi) => poi.floor != 'Kat 1').toList();
 
     showModalBottomSheet(
       context: context,
@@ -556,7 +555,7 @@ class _Kat1PageState extends State<Kat1Page> with TickerProviderStateMixin {
     _listeningController.dispose();
     super.dispose();
   }
-  
+
   Widget _buildVoiceGuideButton() {
     final bool isActive = _isVoiceGuideEnabled;
     final Color buttonColor = isActive ? Colors.blueGrey : successGreen;
@@ -656,17 +655,16 @@ class _Kat1PageState extends State<Kat1Page> with TickerProviderStateMixin {
                       child: Text(
                         _isListening
                             ? (_lastWords.isEmpty
-                                  ? 'Dinleniyor...'
-                                  : _lastWords)
+                                ? 'Dinleniyor...'
+                                : _lastWords)
                             : 'Nereye gitmek istiyorsunuz?',
                         style: TextStyle(
                           fontSize: 16,
                           color: _isListening
                               ? micActiveColor
                               : Colors.grey.shade600,
-                          fontWeight: _isListening
-                              ? FontWeight.w600
-                              : FontWeight.w500,
+                          fontWeight:
+                              _isListening ? FontWeight.w600 : FontWeight.w500,
                         ),
                       ),
                     ),
@@ -675,9 +673,7 @@ class _Kat1PageState extends State<Kat1Page> with TickerProviderStateMixin {
               ),
             ),
           ),
-
           const SizedBox(width: 8),
-
           _buildMicrophoneButton(),
         ],
       ),
@@ -766,7 +762,7 @@ class _Kat1PageState extends State<Kat1Page> with TickerProviderStateMixin {
                           child: CircularProgressIndicator(
                             value: loadingProgress.expectedTotalBytes != null
                                 ? loadingProgress.cumulativeBytesLoaded /
-                                      loadingProgress.expectedTotalBytes!
+                                    loadingProgress.expectedTotalBytes!
                                 : null,
                             color: primaryOrange,
                             strokeWidth: 3,
