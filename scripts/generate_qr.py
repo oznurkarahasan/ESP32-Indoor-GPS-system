@@ -13,7 +13,7 @@ def generate_apk_qr():
     
     # APK indirme linkinizi buraya yazın
     # Örnek: GitHub Releases, Google Drive, Firebase App Distribution, vb.
-    apk_download_url = "https://github.com/KULLANICI_ADI/REPO_ADI/releases/latest/download/app-release.apk"
+    apk_download_url = "https://github.com/oznurkarahasan/ESP32-Indoor-GPS-system/releases/latest/download/app-release.apk"
     
     print("=" * 60)
     print("QR KOD OLUŞTURUCU - APK İNDİRME")
