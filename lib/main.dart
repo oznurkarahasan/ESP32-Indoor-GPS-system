@@ -4,6 +4,10 @@ import 'pages/zemin_page.dart';
 import 'pages/kat1_page.dart';
 import 'pages/kat2_page.dart';
 import 'pages/orni1_page.dart';
+import 'pages/orni2_page.dart';
+import 'pages/orni3_page.dart';
+import 'pages/orni4_page.dart';
+import 'pages/orni5_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -56,6 +60,10 @@ class MyApp extends StatelessWidget {
         '/kat1': (context) => const Kat1Page(),
         '/kat2': (context) => const Kat2Page(),
         '/orni1': (context) => const Orni1Page(),
+        '/orni2': (context) => const Orni2Page(),
+        '/orni3': (context) => const Orni3Page(),
+        '/orni4': (context) => const Orni4Page(),
+        '/orni5': (context) => const Orni5Page(),
       },
       debugShowCheckedModeBanner: false,
     );
