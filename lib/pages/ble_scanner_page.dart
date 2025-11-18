@@ -134,6 +134,7 @@ class _BleScannerPageState extends State<BleScannerPage> {
     if (name == 'Zemin') return '/zemin';
     if (name == 'Kat 1') return '/kat1';
     if (name == 'Kat 2') return '/kat2';
+    if (name == 'Orni1') return '/orni1';
     return null;
   }
 

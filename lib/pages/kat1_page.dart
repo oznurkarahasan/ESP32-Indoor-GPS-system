@@ -515,6 +515,7 @@ class _Kat1PageState extends State<Kat1Page> with TickerProviderStateMixin {
     String? route;
     if (name == 'Zemin') route = '/zemin';
     if (name == 'Kat 2') route = '/kat2';
+    if (name == 'Orni1') route = '/orni1';
 
     if (route != null) {
       Navigator.of(context).pushReplacementNamed(route);

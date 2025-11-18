@@ -12,7 +12,7 @@ class BleRouter {
   static final BleRouter _instance = BleRouter._internal();
   factory BleRouter() => _instance;
 
-  static const Set<String> _allowedNames = {'Zemin', 'Kat 1', 'Kat 2'};
+  static const Set<String> _allowedNames = {'Zemin', 'Kat 1', 'Kat 2', 'Orni1'};
   static const Duration _aliveTimeout = Duration(milliseconds: 1200); // Daha hızlı timeout
   static const int _rssiThreshold = -85; // Çok zayıf sinyalleri filtrele
   static const int _maxHistorySize = 5; // RSSI geçmişi için

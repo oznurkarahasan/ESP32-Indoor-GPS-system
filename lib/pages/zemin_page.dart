@@ -486,6 +486,7 @@ class _ZeminPageState extends State<ZeminPage> with TickerProviderStateMixin {
     String? route;
     if (name == 'Kat 1') route = '/kat1';
     if (name == 'Kat 2') route = '/kat2';
+    if (name == 'Orni1') route = '/orni1';
 
     if (route != null) {
       Navigator.of(context).pushReplacementNamed(route);

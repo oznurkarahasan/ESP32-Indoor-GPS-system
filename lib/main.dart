@@ -3,6 +3,7 @@ import 'pages/ble_scanner_page.dart';
 import 'pages/zemin_page.dart';
 import 'pages/kat1_page.dart';
 import 'pages/kat2_page.dart';
+import 'pages/orni1_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -54,6 +55,7 @@ class MyApp extends StatelessWidget {
         '/zemin': (context) => const ZeminPage(),
         '/kat1': (context) => const Kat1Page(),
         '/kat2': (context) => const Kat2Page(),
+        '/orni1': (context) => const Orni1Page(),
       },
       debugShowCheckedModeBanner: false,
     );
