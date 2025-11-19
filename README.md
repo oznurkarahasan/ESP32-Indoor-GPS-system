@@ -291,3 +291,7 @@ Bu proje MIT lisansı altında lisanslanmıştır. Detaylar için `LICENSE` dosy
 - **GitHub**: [github.com/oznurkarahasan]
 
 **Not**: Bu uygulama geliştirme aşamasındadır. Üretim ortamında kullanmadan önce kapsamlı testler yapın.
+
+flutter build apk --release
+
+python scripts/generate_qr.py

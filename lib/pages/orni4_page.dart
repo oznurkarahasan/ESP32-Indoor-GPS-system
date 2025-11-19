@@ -11,17 +11,17 @@ import 'navigation_page.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-const String kat2HaritaUrl =
-    "https://drive.google.com/uc?export=view&id=1I2a_iSfLcC6sv1fpBG-5pDgNBxS8qxIg";
+const String orni4HaritaUrl =
+    "https://drive.google.com/uc?export=view&id=1-rGQy7qUzATSE4Jzyh5KrXUGEFEZ7YZi";
 
-class Kat2Page extends StatefulWidget {
-  const Kat2Page({super.key});
+class Orni4Page extends StatefulWidget {
+  const Orni4Page({super.key});
 
   @override
-  State<Kat2Page> createState() => _Kat2PageState();
+  State<Orni4Page> createState() => _Orni4PageState();
 }
 
-class _Kat2PageState extends State<Kat2Page> with TickerProviderStateMixin {
+class _Orni4PageState extends State<Orni4Page> with TickerProviderStateMixin {
   // Modern tema renkleri
   static const Color primaryOrange = Color(0xFFFF6B35);
   static const Color successGreen = Color(0xFF4CAF50);
@@ -36,7 +36,6 @@ class _Kat2PageState extends State<Kat2Page> with TickerProviderStateMixin {
   bool _isListening = false;
   String _lastWords = '';
 
-  // <<< YENİ DURUM DEĞİŞKENİ >>>
   bool _isVoiceGuideEnabled = false;
 
   // Animasyon kontrolcüleri
@@ -55,7 +54,7 @@ class _Kat2PageState extends State<Kat2Page> with TickerProviderStateMixin {
     _sub = BleRouter().topStream.listen((top) {
       if (!mounted) return;
       if (top == null) return;
-      if (top.name == 'Kat 2') return;
+      if (top.name == 'Orni4') return;
 
       final now = DateTime.now();
       if (now.difference(_lastNav) < const Duration(milliseconds: 1200)) return;
@@ -216,12 +215,10 @@ class _Kat2PageState extends State<Kat2Page> with TickerProviderStateMixin {
         (poi) => poi.name == destinationPOI,
       );
 
-      // Kat 2 için başlangıç POI adını doğrulayın
-      // 'LYEC Giriş (Kat 2)' veya 'Kat 2 ZON'
       Navigator.of(context).push(
         MaterialPageRoute(
           builder: (context) =>
-              NavigationPage(startPOI: 'LYEC Giriş (Kat 2)', endPOI: targetPOI),
+              NavigationPage(startPOI: 'Orni4 Giriş', endPOI: targetPOI),
         ),
       );
     } catch (e) {
@@ -231,10 +228,10 @@ class _Kat2PageState extends State<Kat2Page> with TickerProviderStateMixin {
 
   void _openLocationSearch() {
     final allBuildingPOIs = BuildingData.allPOIs;
-    final kat2POIs =
-        allBuildingPOIs.where((poi) => poi.floor == 'Kat 2').toList();
+    final orni4POIs =
+        allBuildingPOIs.where((poi) => poi.floor == 'Orni4').toList();
     final otherPOIs =
-        allBuildingPOIs.where((poi) => poi.floor != 'Kat 2').toList();
+        allBuildingPOIs.where((poi) => poi.floor != 'Orni4').toList();
 
     showModalBottomSheet(
       context: context,
@@ -322,8 +319,8 @@ class _Kat2PageState extends State<Kat2Page> with TickerProviderStateMixin {
                   child: ListView(
                     controller: scrollController,
                     children: [
-                      // Bu kattaki yerler
-                      if (kat2POIs.isNotEmpty) ...[
+                      // Bu alandaki yerler
+                      if (orni4POIs.isNotEmpty) ...[
                         Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 20,
@@ -338,7 +335,7 @@ class _Kat2PageState extends State<Kat2Page> with TickerProviderStateMixin {
                               ),
                               const SizedBox(width: 8),
                               Text(
-                                'Bu Kattaki Yerler',
+                                'Bu Alandaki Yerler',
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
@@ -348,7 +345,7 @@ class _Kat2PageState extends State<Kat2Page> with TickerProviderStateMixin {
                             ],
                           ),
                         ),
-                        ...kat2POIs.map((poi) => _buildPOITile(poi, true)),
+                        ...orni4POIs.map((poi) => _buildPOITile(poi, true)),
                         const SizedBox(height: 16),
                       ],
 
@@ -368,7 +365,7 @@ class _Kat2PageState extends State<Kat2Page> with TickerProviderStateMixin {
                               ),
                               const SizedBox(width: 8),
                               Text(
-                                'Diğer Katlardaki Yerler',
+                                'Diğer Alanlardaki Yerler',
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
@@ -464,7 +461,7 @@ class _Kat2PageState extends State<Kat2Page> with TickerProviderStateMixin {
                       if (!isCurrentFloor) ...[
                         const SizedBox(width: 8),
                         Icon(
-                          Icons.arrow_downward_rounded,
+                          Icons.arrow_upward_rounded,
                           size: 16,
                           color: Colors.grey.shade600,
                         ),
@@ -489,10 +486,10 @@ class _Kat2PageState extends State<Kat2Page> with TickerProviderStateMixin {
     String? route;
     if (name == 'Zemin') route = '/zemin';
     if (name == 'Kat 1') route = '/kat1';
+    if (name == 'Kat 2') route = '/kat2';
     if (name == 'Orni1') route = '/orni1';
     if (name == 'Orni2') route = '/orni2';
     if (name == 'Orni3') route = '/orni3';
-    if (name == 'Orni4') route = '/orni4';
     if (name == 'Orni5') route = '/orni5';
 
     if (route != null) {
@@ -509,9 +506,7 @@ class _Kat2PageState extends State<Kat2Page> with TickerProviderStateMixin {
     super.dispose();
   }
 
-  // <<< YENİ METOT >>>
   Widget _buildVoiceGuideButton() {
-    // Duruma göre renk, metin ve ikon belirle
     final bool isActive = _isVoiceGuideEnabled;
     final Color buttonColor = isActive ? Colors.blueGrey : successGreen;
     final String label =
@@ -527,7 +522,6 @@ class _Kat2PageState extends State<Kat2Page> with TickerProviderStateMixin {
           setState(() {
             _isVoiceGuideEnabled = !_isVoiceGuideEnabled;
           });
-          // Kullanıcıya geri bildirim ver
           _showSnack(
             isActive
                 ? 'Sesli rehber Kapatıldı.'
@@ -555,14 +549,13 @@ class _Kat2PageState extends State<Kat2Page> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
-      appBar: const CustomAppBar(title: "2. Kat"),
+      appBar: const CustomAppBar(title: "Orni4"),
       body: SafeArea(
         child: Column(
           children: [
             _buildSearchSection(),
             Expanded(child: _buildMapSection()), // <<< METOT GÜNCELLENDİ
             if (_isListening) _buildListeningIndicator(),
-            // <<< YENİ BUTON EKLENDİ >>>
             _buildVoiceGuideButton(),
             const StopScanButton(),
           ],
@@ -701,7 +694,7 @@ class _Kat2PageState extends State<Kat2Page> with TickerProviderStateMixin {
         child: Stack(
           children: [
             CachedNetworkImage(
-              imageUrl: kat2HaritaUrl,
+              imageUrl: orni4HaritaUrl,
               fit: BoxFit.contain,
               width: double.infinity,
               height: double.infinity,
@@ -751,7 +744,7 @@ class _Kat2PageState extends State<Kat2Page> with TickerProviderStateMixin {
                       ),
                       const SizedBox(height: 16),
                       const Text(
-                        '2. Kat Haritası',
+                        'Orni4 Haritası',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
@@ -793,7 +786,7 @@ class _Kat2PageState extends State<Kat2Page> with TickerProviderStateMixin {
                   ],
                 ),
                 child: const Text(
-                  '2. Kat',
+                  'Orni4',
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w600,
