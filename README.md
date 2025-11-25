@@ -1,3 +1,5 @@
+![System](docs/nav.png)
+
 # ESP32 Indoor GPS System with AR Navigation
 
 Flutter tabanlı iç mekan navigasyon sistemi. Bluetooth Low Energy (BLE) sinyalleri kullanarak konum tespiti yapar ve AR (Augmented Reality) teknolojisi ile kullanıcıya yol gösterir.
@@ -5,6 +7,7 @@ Flutter tabanlı iç mekan navigasyon sistemi. Bluetooth Low Energy (BLE) sinyal
 ## 🚀 Özellikler
 
 ### 🔵 Bluetooth Navigasyon
+
 - ESP32 cihazlarından BLE sinyalleri ile konum tespiti
 - Otomatik kat algılama (Zemin, Kat 1, Kat 2)
 - Gerçek zamanlı sinyal gücü takibi
@@ -12,6 +15,7 @@ Flutter tabanlı iç mekan navigasyon sistemi. Bluetooth Low Energy (BLE) sinyal
 - Otomatik tarama yönetimi (pil tasarrufu için)
 
 ### 🎯 AR (Augmented Reality) Navigasyon
+
 - **Otomatik AR Yetenek Kontrolü**: Cihaz desteğine göre otomatik yönlendirme
 - **Kamera Tabanlı AR**: Gerçek dünya görüntüsü üzerine yön okları
 - Gerçek zamanlı 3D AR yön göstergeleri
@@ -23,6 +27,7 @@ Flutter tabanlı iç mekan navigasyon sistemi. Bluetooth Low Energy (BLE) sinyal
 - **Fallback Desteği**: AR desteklenmeyen cihazlarda video rehber
 
 ### 🎨 Modern UI/UX
+
 - Material Design 3
 - Gradient ve animasyonlar
 - Shimmer efektleri
@@ -38,6 +43,7 @@ Flutter tabanlı iç mekan navigasyon sistemi. Bluetooth Low Energy (BLE) sinyal
 ## 🛠️ Teknolojiler
 
 ### Flutter Paketleri
+
 - `flutter_blue_plus`: BLE iletişimi
 - `permission_handler`: İzin yönetimi
 - `sensors_plus`: Cihaz sensörleri (AR için)
@@ -49,6 +55,7 @@ Flutter tabanlı iç mekan navigasyon sistemi. Bluetooth Low Energy (BLE) sinyal
 - `speech_to_text`: Ses tanıma
 
 ### Donanım
+
 - ESP32 geliştirme kartları
 - BLE beacon'lar
 - Bluetooth 4.0+ destekli mobil cihazlar
@@ -64,22 +71,26 @@ Flutter tabanlı iç mekan navigasyon sistemi. Bluetooth Low Energy (BLE) sinyal
 ## 🔧 Kurulum
 
 ### 1. Projeyi Klonlayın
+
 ```bash
 git clone https://github.com/yourusername/ESP32-Indoor-GPS-system.git
 cd ESP32-Indoor-GPS-system
 ```
 
 ### 2. Bağımlılıkları Yükleyin
+
 ```bash
 flutter pub get
 ```
 
 ### 3. Flutter Doctor Kontrolü
+
 ```bash
 flutter doctor
 ```
 
 ### 4. Uygulamayı Çalıştırın
+
 ```bash
 # Android
 flutter run
@@ -94,11 +105,13 @@ flutter run -d chrome
 ## 🏗️ Build
 
 ### Android APK
+
 ```bash
 flutter build apk --release
 ```
 
 ### iOS
+
 ```bash
 flutter build ios --release
 ```
@@ -106,6 +119,7 @@ flutter build ios --release
 ## 🎮 Kullanım
 
 ### BLE Navigasyon
+
 1. Uygulamayı açın
 2. "Taramayı Başlat" butonuna tıklayın
 3. Bluetooth izinlerini verin
@@ -113,6 +127,7 @@ flutter build ios --release
 5. Kat sayfasında konumunuzu göreceksiniz
 
 ### AR Kamera Navigasyon (AR Desteklenen Cihazlar)
+
 1. Kat sayfalarında (Zemin, Kat 1, Kat 2) gitmek istediğiniz yeri seçin
 2. Otomatik olarak AR Kamera sayfası açılır
 3. Kamera ve sensör izinlerini verin
@@ -128,6 +143,7 @@ flutter build ios --release
 8. Sağ üst köşeden kapat butonu ile çıkabilirsiniz
 
 ### Video Rehber Navigasyon (AR Desteklenmeyen Cihazlar)
+
 1. Kat sayfalarında (Zemin, Kat 1, Kat 2) gitmek istediğiniz yeri seçin
 2. Otomatik olarak Navigasyon sayfası açılır
 3. Sayfada hem video rehber hem hedef önizleme gösterilir:
@@ -176,6 +192,7 @@ lib/
 ## 🔐 İzinler
 
 ### Android (AndroidManifest.xml)
+
 ```xml
 <uses-permission android:name="android.permission.BLUETOOTH"/>
 <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
@@ -187,6 +204,7 @@ lib/
 ```
 
 ### iOS (Info.plist)
+
 ```xml
 <key>NSBluetoothAlwaysUsageDescription</key>
 <string>Bluetooth ile konum tespiti için gerekli</string>
