@@ -1,16 +1,10 @@
-// lib/pages/ble_scanner_page.dart
-
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
-// Yeni eklenen görünüm dosyası
 import '../views/ble_scanner_view.dart';
-// Kullanılan widget'lar
 import '../widgets/custom_appbar.dart';
 import '../services/ble_router.dart';
-// Önbellek ve Veri Modeli
 import '../services/video_cache_service.dart'; 
-import '../models/poi_data.dart'; 
 
 class BleScannerPage extends StatefulWidget {
   const BleScannerPage({super.key});
@@ -27,7 +21,6 @@ class _BleScannerPageState extends State<BleScannerPage> {
   StreamSubscription<BluetoothAdapterState>? _adapterSub;
   bool _scanning = false;
   BluetoothAdapterState _adapterState = BluetoothAdapterState.unknown;
-  // Temizlik zamanlayıcısını 500ms'ye düşürdük
   Timer? _cleanupTimer;
   String? _lastRoute;
   DateTime _lastNav = DateTime.fromMillisecondsSinceEpoch(0);
@@ -35,24 +28,15 @@ class _BleScannerPageState extends State<BleScannerPage> {
   @override
   void initState() {
     super.initState();
-    // 1. İzinleri Kontrol Et ve Başlat
     _checkPermissionsAndInitialize();
-
-// <<< TÜM POPÜLER ROTLARI ÖN YÜKLE >>>
-// VideoCacheService().preLoadPopularRoutes(); // 👈 BU SATIRI DEVRE DIŞI BIRAK
-// <<< ÖN YÜKLEME BİTİŞİ >>>
+    
     _adapterSub = FlutterBluePlus.adapterState.listen((state) {
-      if (mounted) {
-        setState(() => _adapterState = state);
-      }
-      // 2. Eğer Bluetooth yeni açıldıysa, taramaya otomatik başla
+      if (mounted) setState(() => _adapterState = state);
       if (state == BluetoothAdapterState.on && BleRouter().isScanning) {
-        // Zaten tarıyorsa akışları tekrar bağla
         _attachStreams();
       }
     });
 
-    // 3. Temizlik/Güncelleme zamanlayıcısını 500ms'ye ayarla
     _cleanupTimer = Timer.periodic(const Duration(milliseconds: 500), (_) {
       if (!mounted) return;
       setState(() {});
@@ -63,78 +47,55 @@ class _BleScannerPageState extends State<BleScannerPage> {
     }
   }
 
-  // NOTE: Hız testi için kullanılan _preLoadDanismaMasasiVideo metodu,
-  // artık tüm popüler rotalar yüklendiği için kaldırılmıştır.
-  // Geri bildirim artık VideoCacheService tarafından Debug konsoluna yazılacaktır.
-
   Future<void> _checkPermissionsAndInitialize() async {
-    // 4. Bluetooth desteğini kontrol et
-    if (await FlutterBluePlus.isSupported == false) {
-      // Cihaz Bluetooth'u desteklemiyor.
-      if (mounted) {
-        // Hata mesajı gösterilebilir.
-      }
-      return;
-    }
-
-    // Yüksek BLE izinleri (tarama ve bağlanma) genellikle turnOn() ile istenir.
-    // Kullanıcının platformunu kontrol et ve Bluetooth'u açmasını iste.
+    if (await FlutterBluePlus.isSupported == false) return;
     if (mounted) {
-      // mounted kontrolü eklendi
       if (Theme.of(context).platform == TargetPlatform.android ||
           Theme.of(context).platform == TargetPlatform.iOS) {
-        // Bluetooth'u açma ve gerekli izinleri alma isteği.
-        // Konum izni (Android) ve Bluetooth izinleri (iOS/Android) bu çağrıyla dolaylı olarak istenir.
         await FlutterBluePlus.turnOn();
       }
     }
   }
 
   Future<void> _startScan() async {
-    // Bluetooth kapalıysa açılmasını iste
     if (_adapterState != BluetoothAdapterState.on) {
-      // Bluetooth'u açmak için platformun izin diyalogunu göster
       await FlutterBluePlus.turnOn();
-      // State'in güncellenmesini bekle (BleScannerView'da durumu kontrol et)
       await Future.delayed(const Duration(milliseconds: 500));
-      if (_adapterState != BluetoothAdapterState.on) {
-        // Kullanıcı açmayı reddettiyse, uyarı gösterilebilir.
-        return;
-      }
+      if (_adapterState != BluetoothAdapterState.on) return;
     }
 
     setState(() {
       _lastRoute = null;
     });
-    // Aşağıdaki if bloğunda tek satır statement yerine blok kullanın (curly_braces_in_flow_control_structures hatası için)
+    
     if (!BleRouter().isScanning) {
       await BleRouter().start();
     }
     _attachStreams();
   }
 
-  // ... (Diğer metotlar aynı kalır) ...
   void _attachStreams() {
-    // scanning state
     _scanning = BleRouter().isScanning;
     _scanStateSub?.cancel();
     _scanStateSub = BleRouter().scanningStream.listen((v) {
       if (!mounted) return;
       setState(() => _scanning = v);
     });
-    // devices list
+    
     _devicesSub?.cancel();
     _devicesSub = BleRouter().devicesStream.listen((list) {
       if (!mounted) return;
       setState(() => _devices = list);
     });
-    // top signal for navigation
+    
     _topSub?.cancel();
     _topSub = BleRouter().topStream.listen((top) {
       if (!mounted || top == null) return;
+      
       final route = _routeForName(top.name);
+      
       if (route == null) return;
-      // Navigasyon gecikmesi daha kısa tutulur
+      
       final now = DateTime.now();
       if (now.difference(_lastNav) < const Duration(milliseconds: 500)) return;
       _lastNav = now;
@@ -142,8 +103,13 @@ class _BleScannerPageState extends State<BleScannerPage> {
     });
   }
 
+  // >>>>> İŞTE İSTEDİĞİN KURAL BURADA <<<<<
   String? _routeForName(String name) {
-    if (name == 'Zemin') return '/zemin';
+    // iTAG kelimesini görürsen direkt '/zemin' sayfasına gönder
+    if (name.contains('iTAG') || name.contains('itag') || name == 'Zemin') {
+        return '/zemin';
+    }
+    
     if (name == 'Kat 1') return '/kat1';
     if (name == 'Kat 2') return '/kat2';
     return null;
@@ -175,7 +141,6 @@ class _BleScannerPageState extends State<BleScannerPage> {
     _topSub?.cancel();
     _adapterSub?.cancel();
     _cleanupTimer?.cancel();
-    // VİDEO ÖNBELLEĞİNİ TEMİZLE
     VideoCacheService().disposeAll();
     super.dispose();
   }
