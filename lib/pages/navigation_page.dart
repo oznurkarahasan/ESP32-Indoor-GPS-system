@@ -1,3 +1,5 @@
+// lib/pages/navigation_page.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:video_player/video_player.dart';
@@ -6,15 +8,18 @@ import '../models/poi_data.dart';
 import '../widgets/custom_appbar.dart';
 import '../widgets/modern_card.dart';
 import '../widgets/modern_loading.dart';
+import '../services/video_cache_service.dart'; // Önbellek Servisi için
 
 class NavigationPage extends StatefulWidget {
   final String startPOI;
   final POI endPOI;
+  final bool isVoiceGuideEnabled; // <<< YENİ EKLENEN PARAMETRE
 
   const NavigationPage({
     super.key,
     required this.startPOI,
     required this.endPOI,
+    required this.isVoiceGuideEnabled, // <<< YENİ EKLENEN PARAMETRE
   });
 
   @override
@@ -31,7 +36,6 @@ class _NavigationPageState extends State<NavigationPage>
   late VideoPlayerController _controller;
   bool _isControllerReady = false;
   bool _isPlaying = false;
-  // bool _isMuted = true; // <<< KALDIRILDI
 
   // Navigasyon durumu
   late NavVideo _routeVideo;
@@ -46,14 +50,21 @@ class _NavigationPageState extends State<NavigationPage>
     super.initState();
     _routeVideo = _findRouteVideo();
     _initializeAnimations();
-    _initializeVideoPlayer();
+    
+    // VİDEOYU ÖNCELİKLE ÖNBELLEKTEN ALMA
+    _initializeVideoWithCache();
+
     BleRouter().stop();
   }
 
   @override
   void dispose() {
     BleRouter().start();
-    _controller.dispose();
+    // Önbellekteki controller'ı dispose ETMİYORUZ. Sadece duraklat ve başa sar.
+    if (_isControllerReady) {
+        _controller.pause();
+        _controller.seekTo(Duration.zero);
+    }
     _progressController.dispose();
     super.dispose();
   }
@@ -69,28 +80,73 @@ class _NavigationPageState extends State<NavigationPage>
     );
   }
 
-  Future<void> _initializeVideoPlayer() async {
+  // VİDEOYU ÖNBELLEKTEN ALMA VEYA YENİDEN YÜKLEME
+  Future<void> _initializeVideoWithCache() async {
+    final routeName = _routeVideo.name;
+    // 1. Önbellekte controller var mı?
+    final cachedController = VideoCacheService().getController(routeName);
+
+    if (cachedController != null) {
+      // 2. Önbellekte bulundu: Hızlı başlat!
+      _controller = cachedController;
+      
+      // --- DEĞİŞİKLİK BURADA ---
+      // Önbellekten gelse bile, sesi mevcut ayara göre ayarla
+      _controller.setVolume(widget.isVoiceGuideEnabled ? 1.0 : 0.0);
+      // --- DEĞİŞİKLİK BİTTİ ---
+
+      if (mounted) {
+        setState(() {
+          _isControllerReady = true;
+          debugPrint("NavPage: Video önbellekten hazır!");
+        });
+      }
+    } else {
+      // 3. Önbellekte yok: Kendimiz yükleyelim.
+      debugPrint("NavPage: Video önbellekte bulunamadı, yeniden yükleniyor...");
+      _initializeVideoPlayer(isForCache: false); 
+    }
+  }
+
+  // NETWORK/ASSET AYRIMINI YAPARAK CONTROLLER'I BAŞLATMA METODU
+  Future<void> _initializeVideoPlayer({required bool isForCache}) async {
     final url = _routeVideo.url;
 
-    _controller = VideoPlayerController.networkUrl(Uri.parse(url))
-      ..initialize()
-          .then((_) {
-            if (mounted) {
-              setState(() {
-                _isControllerReady = true;
-                _controller.setLooping(false);
-                _controller.setVolume(0.0); // <<< SES KALICI OLARAK KAPATILDI
-              });
-            }
-          })
-          .catchError((e) {
-            debugPrint("Video Oynatma Hatası: $e");
-            if (mounted) {
-              setState(() {
-                _isControllerReady = false;
-              });
-            }
-          });
+    try {
+      final bool isAsset = url.startsWith('assets/');
+      
+      if (isAsset) {
+        _controller = VideoPlayerController.asset(url);
+      } else {
+        _controller = VideoPlayerController.networkUrl(Uri.parse(url));
+      }
+      
+      await _controller.initialize();
+
+      if (mounted) {
+        setState(() {
+          _isControllerReady = true;
+          _controller.setLooping(false);
+          
+          // --- DEĞİŞİKLİK BURADA ---
+          // Sesi 0.0 yapmak yerine, gelen parametreye göre ayarla
+          _controller.setVolume(widget.isVoiceGuideEnabled ? 1.0 : 0.0);
+          // --- DEĞİŞİKLİK BİTTİ ---
+        });
+        
+        // Önbellek için yükleniyorsa, servise ekle (preLoadVideo'dan gelmişse)
+        if (isForCache) {
+             VideoCacheService().setController(_routeVideo.name, _controller); 
+        }
+      }
+    } catch (e) {
+      debugPrint("Video Oynatma Hatası: $e");
+      if (mounted) {
+        setState(() {
+          _isControllerReady = false;
+        });
+      }
+    }
   }
 
   // Rota videosunu bulma mantığı
@@ -153,20 +209,6 @@ class _NavigationPageState extends State<NavigationPage>
 
     HapticFeedback.mediumImpact();
   }
-
-  /*
-  // <<< _toggleMute FONKSİYONU KALDIRILDI
-  void _toggleMute() {
-    if (!_isControllerReady) return;
-
-    setState(() {
-      _isMuted = !_isMuted;
-      _controller.setVolume(_isMuted ? 0.0 : 1.0);
-    });
-
-    HapticFeedback.selectionClick();
-  }
-  */
 
   void _onNavigationFinished() {
     _controller.pause();
@@ -328,7 +370,9 @@ class _NavigationPageState extends State<NavigationPage>
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Video rehberini takip ederek hedefinize güvenle ulaşın',
+                    widget.isVoiceGuideEnabled
+                        ? 'Sesli rehber aktif. Lütfen videodaki yönlendirmeleri dinleyin.'
+                        : 'Video rehberini takip ederek hedefinize güvenle ulaşın',
                     style: TextStyle(color: Colors.blue.shade700, fontSize: 14),
                   ),
                 ),
@@ -428,25 +472,6 @@ class _NavigationPageState extends State<NavigationPage>
                 ),
               ),
 
-            /*
-            // <<< SES DÜĞMESİ (OVERLAY) KALDIRILDI
-            Positioned(
-              top: 12,
-              right: 12,
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.black.withAlpha(153),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Icon(
-                  _isMuted ? Icons.volume_off : Icons.volume_up,
-                  color: Colors.white,
-                  size: 20,
-                ),
-              ),
-            ),
-            */
           ],
         ),
       ),
@@ -581,18 +606,6 @@ class _NavigationPageState extends State<NavigationPage>
                 color: Colors.grey,
               ),
             ),
-            
-            // <<< SES KONTROL DÜĞMESİ KALDIRILDI
-            /*
-            const SizedBox(width: 12),
-            _buildControlButton(
-              icon: _isMuted ? Icons.volume_off : Icons.volume_up,
-              label: '',
-              onPressed: _toggleMute,
-              color: Colors.orange,
-              isIconOnly: true,
-            ),
-            */
           ],
         ),
         const SizedBox(height: 16),
@@ -689,6 +702,34 @@ class _NavigationPageState extends State<NavigationPage>
   }
 
   Widget _buildDestinationPreview() {
+    // Fotoğraf yolunu alıyoruz
+    final imageUrl = widget.endPOI.imageUrl;
+    final bool isAsset = imageUrl.startsWith('assets/');
+
+    // Hata durumunda gösterilecek yer tutucuyu oluşturuyoruz
+    Widget errorPlaceholder = _buildErrorPlaceholder();
+
+    // Görüntü widget'ını duruma göre belirliyoruz
+    final Widget imageWidget = isAsset 
+        ? Image.asset(
+            imageUrl,
+            width: double.infinity,
+            height: 200,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return errorPlaceholder; 
+            },
+          )
+        : Image.network(
+            imageUrl,
+            width: double.infinity,
+            height: 200,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return errorPlaceholder; 
+            },
+          );
+
     return ModernCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -703,7 +744,7 @@ class _NavigationPageState extends State<NavigationPage>
           ),
           const SizedBox(height: 16),
           Container(
-            height: 200,
+            height: 200, // Sabit yükseklik
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
@@ -716,35 +757,12 @@ class _NavigationPageState extends State<NavigationPage>
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(12),
-              child: Image.network(
-                widget.endPOI.imageUrl,
-                width: double.infinity,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    color: Colors.grey.shade200,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.image_not_supported,
-                          size: 48,
-                          color: Colors.grey.shade400,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Görsel yüklenemedi',
-                          style: TextStyle(color: Colors.grey.shade600),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
+              child: imageWidget, // Yerel veya Ağ resmi
             ),
           ),
           const SizedBox(height: 16),
           Row(
+            // ... (Aşağıdaki metin kısmı aynı kalır)
             children: [
               Container(
                 padding: const EdgeInsets.all(8),
@@ -781,6 +799,28 @@ class _NavigationPageState extends State<NavigationPage>
                 ),
               ),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Yeni Hata Yer Tutucu metodu
+  Widget _buildErrorPlaceholder() {
+    return Container(
+      color: Colors.grey.shade200,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.image_not_supported,
+            size: 48,
+            color: Colors.grey.shade400,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Görsel yüklenemedi',
+            style: TextStyle(color: Colors.grey.shade600),
           ),
         ],
       ),

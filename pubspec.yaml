@@ -24,10 +24,9 @@ dependencies:
   shimmer: ^3.0.0
   lottie: ^3.1.0
 
-  # <<< YENİ EKLENEN ÖNBELLEK PAKETLERİ >>>
+  # ÖNBELLEK PAKETLERİ VE HARİTA
   cached_network_image: ^3.3.1
   flutter_cache_manager: ^3.3.2
-  # <<< EKLENTİLER SONU >>>
 
 dev_dependencies:
   flutter_test:
@@ -36,3 +35,34 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  
+  # YEREL VARLIK YOLLARI (Tüm POI klasörlerini kapsayacak şekilde genişletildi)
+  assets:
+    # Ana dizin ve Haritalar
+    - assets/
+    
+    # Tüm POI Klasörleri (Ekran görüntünüzdeki yapıya göre)
+    - assets/AktiviteOdasi/
+    - assets/AsansorKat1/
+    - assets/AsansorKat2/
+    - assets/AsansorZemin/
+    - assets/BeklemeSalonu/
+    - assets/BilgisayarLabKat1/
+    - assets/DanismaMasasi/
+    - assets/GirisCikis/
+    - assets/IdariOfisKat1/
+    - assets/LYECGirisKat2/
+    - assets/MerdivenKat1/
+    - assets/MerdivenZemin/
+    - assets/Mutfak/
+    - assets/MutfakKat2/
+    - assets/MuzikOdasi/
+    - assets/OgretmenOdasi/
+    - assets/ResimAtolyesi/
+    - assets/Revir/
+    - assets/SesliKutuphane/
+    - assets/Teras1/
+    - assets/Teras2/
+    - assets/toluhoca/
+    - assets/WCKat1/
+    - assets/WCZemin/

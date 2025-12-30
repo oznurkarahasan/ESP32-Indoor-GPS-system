@@ -1,3 +1,5 @@
+// lib/pages/ble_scanner_page.dart
+
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
@@ -6,6 +8,9 @@ import '../views/ble_scanner_view.dart';
 // Kullanılan widget'lar
 import '../widgets/custom_appbar.dart';
 import '../services/ble_router.dart';
+// Önbellek ve Veri Modeli
+import '../services/video_cache_service.dart'; 
+import '../models/poi_data.dart'; 
 
 class BleScannerPage extends StatefulWidget {
   const BleScannerPage({super.key});
@@ -33,6 +38,9 @@ class _BleScannerPageState extends State<BleScannerPage> {
     // 1. İzinleri Kontrol Et ve Başlat
     _checkPermissionsAndInitialize();
 
+// <<< TÜM POPÜLER ROTLARI ÖN YÜKLE >>>
+// VideoCacheService().preLoadPopularRoutes(); // 👈 BU SATIRI DEVRE DIŞI BIRAK
+// <<< ÖN YÜKLEME BİTİŞİ >>>
     _adapterSub = FlutterBluePlus.adapterState.listen((state) {
       if (mounted) {
         setState(() => _adapterState = state);
@@ -54,6 +62,10 @@ class _BleScannerPageState extends State<BleScannerPage> {
       BleRouter().stop();
     }
   }
+
+  // NOTE: Hız testi için kullanılan _preLoadDanismaMasasiVideo metodu,
+  // artık tüm popüler rotalar yüklendiği için kaldırılmıştır.
+  // Geri bildirim artık VideoCacheService tarafından Debug konsoluna yazılacaktır.
 
   Future<void> _checkPermissionsAndInitialize() async {
     // 4. Bluetooth desteğini kontrol et
@@ -163,6 +175,8 @@ class _BleScannerPageState extends State<BleScannerPage> {
     _topSub?.cancel();
     _adapterSub?.cancel();
     _cleanupTimer?.cancel();
+    // VİDEO ÖNBELLEĞİNİ TEMİZLE
+    VideoCacheService().disposeAll();
     super.dispose();
   }
 }

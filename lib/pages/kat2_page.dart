@@ -1,7 +1,8 @@
+// lib/pages/kat2_page.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:async';
-import 'package:cached_network_image/cached_network_image.dart'; // <<< YENİ IMPORT
 import '../services/ble_router.dart';
 import '../widgets/stop_scan_button.dart';
 import '../widgets/custom_appbar.dart';
@@ -10,9 +11,8 @@ import '../models/poi_data.dart';
 import 'navigation_page.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:permission_handler/permission_handler.dart';
-
-const String kat2HaritaUrl =
-    "https://drive.google.com/uc?export=view&id=1I2a_iSfLcC6sv1fpBG-5pDgNBxS8qxIg";
+import '../views/floor_map_view.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class Kat2Page extends StatefulWidget {
   const Kat2Page({super.key});
@@ -218,10 +218,14 @@ class _Kat2PageState extends State<Kat2Page> with TickerProviderStateMixin {
 
       // Kat 2 için başlangıç POI adını doğrulayın
       // 'LYEC Giriş (Kat 2)' veya 'Kat 2 ZON'
-      Navigator.of(context).push(
+Navigator.of(context).push(
         MaterialPageRoute(
           builder: (context) =>
-              NavigationPage(startPOI: 'LYEC Giriş (Kat 2)', endPOI: targetPOI),
+              NavigationPage(
+                startPOI: 'LYEC Giriş (Kat 2)', // veya 'Kat 1 ZON', 'LYEC Giriş (Kat 2)'
+                endPOI: targetPOI,
+                isVoiceGuideEnabled: _isVoiceGuideEnabled, // <<< BU SATIRI EKLEYİN
+              ),
         ),
       );
     } catch (e) {
@@ -393,6 +397,14 @@ class _Kat2PageState extends State<Kat2Page> with TickerProviderStateMixin {
   }
 
   Widget _buildPOITile(POI poi, bool isCurrentFloor) {
+    // Fotoğraf yolu yerel varlık mı?
+    final bool isAsset = poi.imageUrl.startsWith('assets/');
+
+    // Görüntü Sağlayıcıyı duruma göre seçiyoruz
+    final ImageProvider imageProvider = isAsset
+        ? AssetImage(poi.imageUrl)
+        : NetworkImage(poi.imageUrl) as ImageProvider;
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: ModernCard(
@@ -408,8 +420,12 @@ class _Kat2PageState extends State<Kat2Page> with TickerProviderStateMixin {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
                 image: DecorationImage(
-                  image: NetworkImage(poi.imageUrl),
+                  image: imageProvider, // Yerel veya Ağdan gelen resim
                   fit: BoxFit.cover,
+                  // Resim yüklenemezse (yerel ya da ağ) hata durumunu manuel yakala
+                  onError: (exception, stackTrace) {
+                    debugPrint('Resim yükleme hatası: $exception');
+                  },
                 ),
               ),
               child: Container(
@@ -504,7 +520,6 @@ class _Kat2PageState extends State<Kat2Page> with TickerProviderStateMixin {
     super.dispose();
   }
 
-  // <<< YENİ METOT >>>
   Widget _buildVoiceGuideButton() {
     // Duruma göre renk, metin ve ikon belirle
     final bool isActive = _isVoiceGuideEnabled;
@@ -554,10 +569,20 @@ class _Kat2PageState extends State<Kat2Page> with TickerProviderStateMixin {
       body: SafeArea(
         child: Column(
           children: [
-            _buildSearchSection(),
-            Expanded(child: _buildMapSection()), // <<< METOT GÜNCELLENDİ
+            Expanded(
+              child: FloorMapView(
+                mapImageUrl: BuildingData.kat2HaritaUrl, 
+                floorName: '2. Kat',
+                isWide: MediaQuery.of(context).size.width > 600,
+                onSearchTap: _openLocationSearch,
+                onMicTap: _startListening,
+                isMicListening: _isListening,
+                micPulseAnimation: _micPulseAnimation,
+                micColorAnimation: _micColorAnimation,
+                lastWords: _lastWords,
+              ),
+            ),
             if (_isListening) _buildListeningIndicator(),
-            // <<< YENİ BUTON EKLENDİ >>>
             _buildVoiceGuideButton(),
             const StopScanButton(),
           ],
@@ -566,247 +591,9 @@ class _Kat2PageState extends State<Kat2Page> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildSearchSection() {
-    return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withAlpha(51),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: GestureDetector(
-              onTap: _openLocationSearch,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  vertical: 16,
-                  horizontal: 20,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade50,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: _isListening ? micActiveColor : Colors.grey.shade300,
-                    width: _isListening ? 2 : 1,
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.search_rounded, color: primaryOrange, size: 24),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        _isListening
-                            ? (_lastWords.isEmpty
-                                  ? 'Dinleniyor...'
-                                  : _lastWords)
-                            : 'Nereye gitmek istiyorsunuz?',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: _isListening
-                              ? micActiveColor
-                              : Colors.grey.shade600,
-                          fontWeight: _isListening
-                              ? FontWeight.w600
-                              : FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          _buildMicrophoneButton(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMicrophoneButton() {
-    return AnimatedBuilder(
-      animation: Listenable.merge([_micPulseAnimation, _micColorAnimation]),
-      builder: (context, child) {
-        return Transform.scale(
-          scale: _isListening ? _micPulseAnimation.value : 1.0,
-          child: Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: _isListening
-                    ? [micActiveColor, micActiveColor.withAlpha(204)]
-                    : [primaryOrange, primaryOrange.withAlpha(204)],
-              ),
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: (_isListening ? micActiveColor : primaryOrange)
-                      .withAlpha(102),
-                  blurRadius: _isListening ? 16 : 8,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                borderRadius: BorderRadius.circular(28),
-                onTap: _startListening,
-                child: Icon(
-                  _isListening ? Icons.mic_rounded : Icons.mic_none_rounded,
-                  color: Colors.white,
-                  size: 28,
-                ),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  // <<< TAMAMEN GÜNCELLENEN METOT >>>
-  Widget _buildMapSection() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withAlpha(38),
-            blurRadius: 15,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child: Stack(
-          children: [
-            CachedNetworkImage(
-              imageUrl: kat2HaritaUrl,
-              fit: BoxFit.contain,
-              width: double.infinity,
-              height: double.infinity,
-              placeholder: (context, url) => Container(
-                color: Colors.grey.shade50,
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SizedBox(
-                        width: 40,
-                        height: 40,
-                        child: CircularProgressIndicator(
-                          color: primaryOrange,
-                          strokeWidth: 3,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Harita yükleniyor...',
-                        style: TextStyle(
-                          color: Colors.grey.shade600,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              errorWidget: (context, url, error) => Container(
-                color: Colors.grey.shade50,
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.red.shade50,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          Icons.map_outlined,
-                          color: Colors.red.shade400,
-                          size: 48,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        '2. Kat Haritası',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Harita yüklenemedi',
-                        style: TextStyle(
-                          color: Colors.grey.shade600,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-
-            // Kat bilgisi overlay
-            Positioned(
-              top: 16,
-              left: 16,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: primaryOrange.withAlpha(230),
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: primaryOrange.withAlpha(77),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: const Text(
-                  '2. Kat',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-  // <<< GÜNCELLEME SONU >>>
-
   Widget _buildListeningIndicator() {
     return AnimatedBuilder(
-      animation: _listeningAnimation,
+      animation: _listeningController,
       builder: (context, child) {
         return Container(
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
