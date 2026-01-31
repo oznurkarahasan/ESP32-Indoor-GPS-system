@@ -9,7 +9,7 @@ import 'services/ar_capability_service.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // AR desteğini kontrol et
+  // bunu 
   await ArCapabilityService().checkArSupport();
 
   await dotenv.load(fileName: ".env");
