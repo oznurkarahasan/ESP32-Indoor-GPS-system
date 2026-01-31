@@ -8,10 +8,10 @@ import 'services/ar_capability_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
+  
   // bunu 
   await ArCapabilityService().checkArSupport();
-
+ // bunu 
   await dotenv.load(fileName: ".env");
 
   runApp(const MyApp());
